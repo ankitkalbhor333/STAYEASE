@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { isTokenBlacklisted } from "./tokenBlacklist.js";
 
 /**
  * Auth Middleware - Verify JWT Token
@@ -28,6 +29,13 @@ export const verifyToken = (req, res, next) => {
       });
     }
 
+    // Check if token is blacklisted (user logged out)
+    if (isTokenBlacklisted(token)) {
+      return res.status(401).json({
+        msg: "Token has been revoked. Please login again."
+      });
+    }
+
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -36,6 +44,9 @@ export const verifyToken = (req, res, next) => {
       id: decoded.id,
       email: decoded.email
     };
+    
+    // Attach token to request (for logout)
+    req.token = token;
 
     next();
 
@@ -47,7 +58,7 @@ export const verifyToken = (req, res, next) => {
     }
 
     if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ 
+      return res.status(401).json({
         msg: "Invalid token. Authentication failed." 
       });
     }
