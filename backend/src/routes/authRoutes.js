@@ -6,8 +6,10 @@ import {
   forgotPassword, 
   resetPasswordPage,
   resetPassword,
+  logout,
   testEmail
 } from "../controllers/authController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 import {
   loginLimiter,
   registerLimiter,
@@ -28,6 +30,9 @@ router.get("/verify/:token", verifyEmail);
 
 // POST /api/auth/login - Authenticate user
 router.post("/login", loginLimiter, login);
+
+// POST /api/auth/logout - Logout user (requires valid token)
+router.post("/logout", verifyToken, logout);
 
 // POST /api/auth/forgot-password - Request password reset
 router.post("/forgot-password", passwordResetLimiter, forgotPassword);

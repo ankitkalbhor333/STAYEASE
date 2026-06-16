@@ -1,92 +1,84 @@
 import jwt from "jsonwebtoken";
+import User from "../model/User.js";
+import { isTokenBlacklisted } from "./tokenBlacklist.js";
 
 /**
  * Auth Middleware - Verify JWT Token
- * Protects routes that require authentication
- * 
- * Usage: router.get("/protected-route", verifyToken, controllerFunction);
+ * Protects routes that require authentication.
  */
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   try {
-    // Get token from Authorization header
     const authHeader = req.headers.authorization;
-    
     if (!authHeader) {
-      return res.status(401).json({ 
-        msg: "No token provided. Authorization header required." 
+      return res.status(401).json({
+        msg: "No token provided. Authorization header required.",
       });
     }
 
-    // Extract token from "Bearer <token>"
-    const token = authHeader.startsWith("Bearer ") 
-      ? authHeader.slice(7)  // Remove "Bearer " prefix
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
       : authHeader;
 
     if (!token) {
-      return res.status(401).json({ 
-        msg: "Invalid authorization header format. Use: Bearer <token>" 
+      return res.status(401).json({
+        msg: "Invalid authorization header format. Use: Bearer <token>",
       });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (isTokenBlacklisted(token)) {
+      return res.status(401).json({
+        msg: "Token has been revoked. Please login again.",
+      });
+    }
 
-    // Attach user info to request
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) {
+      return res.status(401).json({
+        msg: "User not found.",
+      });
+    }
+
     req.user = {
-      id: decoded.id,
-      email: decoded.email
+      id: String(user._id),
+      email: user.email,
+      role: user.role,
     };
+    req.token = token;
 
     next();
-
   } catch (err) {
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ 
-        msg: "Token has expired. Please login again." 
+      return res.status(401).json({
+        msg: "Token has expired. Please login again.",
       });
     }
 
     if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ 
-        msg: "Invalid token. Authentication failed." 
+      return res.status(401).json({
+        msg: "Invalid token. Authentication failed.",
       });
     }
 
     console.error("Auth middleware error:", err.message);
-    res.status(500).json({ 
-      msg: "Server error during authentication" 
+    res.status(500).json({
+      msg: "Server error during authentication",
     });
   }
 };
 
 /**
- * Optional: Admin Middleware - Check if user is admin
- * Use this after verifyToken if you have admin roles
- * 
- * Usage: router.delete("/admin-route", verifyToken, verifyAdmin, controllerFunction);
+ * Optional legacy admin middleware for routes requiring admin access.
  */
-export const verifyAdmin = async (req, res, next) => {
-  try {
-    // Import User model
-    import("../model/User.js").then(async (module) => {
-      const User = module.default;
-      
-      const user = await User.findById(req.user.id);
-      
-      if (!user || user.role !== "admin") {
-        return res.status(403).json({ 
-          msg: "Access denied. Admin privileges required." 
-        });
-      }
-
-      next();
-    }).catch(err => {
-      console.error("Admin verification error:", err);
-      res.status(500).json({ msg: "Server error" });
-    });
-
-  } catch (err) {
-    console.error("Admin middleware error:", err);
-    res.status(500).json({ msg: "Server error" });
+export const verifyAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ msg: "Authentication required" });
   }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ msg: "Access denied. Admin privileges required." });
+  }
+
+  next();
 };

@@ -5,6 +5,7 @@ import crypto from "crypto";
 
 import { sendEmail } from "../utils/sendEmail.js";
 import { validatePassword, isCommonPassword } from "../utils/passwordValidator.js";
+import { blacklistToken } from "../middleware/tokenBlacklist.js";
 
 /**
  * REGISTER - Create new user account
@@ -654,5 +655,40 @@ export const testEmail = async (req, res) => {
         EMAIL_PORT: process.env.EMAIL_PORT || 587
       }
     });
+  }
+};
+
+/**
+ * LOGOUT - Invalidate user token
+ * POST /api/auth/logout
+ * Headers: Authorization: Bearer <token>
+ */
+export const logout = async (req, res) => {
+  try {
+    // Get token from request (attached by verifyToken middleware)
+    const token = req.token;
+
+    if (!token) {
+      return res.status(400).json({ 
+        msg: "No token found. Unable to logout." 
+      });
+    }
+
+    // Blacklist the token (invalidate it)
+    // Token expires in 7 days, so blacklist it for 7 days
+    const tokenExpiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
+    blacklistToken(token, tokenExpiresIn);
+
+    res.json({ 
+      msg: "Logout successful. Token has been invalidated.",
+      user: {
+        id: req.user.id,
+        email: req.user.email
+      }
+    });
+
+  } catch (err) {
+    console.error("Logout error:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
   }
 };
