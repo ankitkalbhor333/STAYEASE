@@ -69,9 +69,39 @@ export const uploadProfileImage = async (req, res, next) => {
       });
     }
 
+    // Save image path to database
+    const imagePath = `profiles/${req.file.filename}`;
+    const updatedUser = await userService.uploadProfileImage(
+      req.user.id,
+      imagePath
+    );
+
     res.status(200).json({
       success: true,
-      image: req.file.path,
+      message: "Profile image uploaded successfully",
+      data: {
+        profileImage: updatedUser.profileImage,
+        user: updatedUser,
+      },
+    });
+  } catch (error) {
+    // Delete uploaded file if there's an error saving to database
+    if (req.file) {
+      const fs = await import("fs");
+      fs.default.unlinkSync(req.file.path);
+    }
+    next(error);
+  }
+};
+
+export const deleteProfileImage = async (req, res, next) => {
+  try {
+    const updatedUser = await userService.deleteProfileImage(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Profile image deleted successfully",
+      data: updatedUser,
     });
   } catch (error) {
     next(error);
