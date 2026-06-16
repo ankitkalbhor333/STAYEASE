@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
 import { sendEmail } from "../utils/sendEmail.js";
+import { validatePassword, isCommonPassword } from "../utils/passwordValidator.js";
 
 /**
  * REGISTER - Create new user account
@@ -13,19 +14,43 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !email || !phone || !password) {
       return res.status(400).json({ 
-        msg: "Please provide name, email, and password" 
+        msg: "Please provide name, email, phone, and password" 
       });
     }
 
-    // Check if user exists
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        msg: "Password does not meet requirements",
+        errors: passwordValidation.errors,
+        strength: passwordValidation.strength
+      });
+    }
+
+    // Check for common passwords
+    if (isCommonPassword(password)) {
+      return res.status(400).json({
+        msg: "Password is too common. Please choose a stronger password.",
+        errors: ["This password is commonly used and not secure"]
+      });
+    }
+
+    // Check if user exists by email
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ msg: "Email already registered" });
+    }
+
+    // Check if phone already exists
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) {
+      return res.status(400).json({ msg: "Phone number already registered" });
     }
 
     // Hash password
@@ -38,13 +63,16 @@ export const register = async (req, res) => {
     const user = await User.create({
       name,
       email,
+      phone,
       password: hashedPassword,
       verificationToken
     });
 
     // Build verification link
-    const baseUrl = req.serverURL;
-    const verifyLink = `${base}/verify/${verificationToken}`;
+    const protocol = req.protocol || "http";
+    const host = req.get("host");
+    const baseUrl = `${protocol}://${host}/api/auth`;
+    const verifyLink = `${baseUrl}/verify/${verificationToken}`;
 
     // Send verification email
     try {
@@ -184,7 +212,9 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     // Build reset link
-    const baseUrl = req.serverURL;
+    const protocol = req.protocol || "http";
+    const host = req.get("host");
+    const baseUrl = `${protocol}://${host}/api/auth`;
     const resetLink = `${baseUrl}/reset-password/${resetToken}`;
 
     // Send reset email
@@ -215,6 +245,289 @@ export const forgotPassword = async (req, res) => {
 };
 
 /**
+ * RESET PASSWORD PAGE - Show password reset form (GET)
+ * GET /api/auth/reset-password/:token
+ */
+export const resetPasswordPage = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).send(`
+        <html>
+          <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h2>❌ Error</h2>
+            <p>Reset token is required</p>
+          </body>
+        </html>
+      `);
+    }
+
+    // Check if token exists and is not expired
+    const user = await User.findOne({ resetToken: token });
+
+    if (!user) {
+      return res.status(400).send(`
+        <html>
+          <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h2>❌ Invalid Token</h2>
+            <p>Reset token is invalid or has expired</p>
+          </body>
+        </html>
+      `);
+    }
+
+    // Check if token expired
+    if (new Date() > user.resetTokenExpiry) {
+      user.resetToken = undefined;
+      user.resetTokenExpiry = undefined;
+      await user.save();
+      return res.status(400).send(`
+        <html>
+          <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h2>❌ Token Expired</h2>
+            <p>Reset link has expired. Please request a new one.</p>
+          </body>
+        </html>
+      `);
+    }
+
+    // Show password reset form
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Password</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+          }
+          h2 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+          }
+          .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+          }
+          .form-group {
+            margin-bottom: 20px;
+          }
+          label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+          }
+          input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+          }
+          input:focus {
+            outline: none;
+            border-color: #667eea;
+          }
+          .requirements {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+          }
+          .requirements li {
+            margin: 5px 0;
+            margin-left: 20px;
+          }
+          .requirements li.met {
+            color: #4caf50;
+          }
+          .requirements li.unmet {
+            color: #f44336;
+          }
+          button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+          }
+          button:hover {
+            transform: translateY(-2px);
+          }
+          button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+          }
+          .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+          }
+          .message.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+          }
+          .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>🔐 Reset Password</h2>
+          <p class="subtitle">Enter your new password below</p>
+
+          <form id="resetForm">
+            <div class="form-group">
+              <label for="password">New Password:</label>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Enter new password"
+                required
+              >
+            </div>
+
+            <div class="requirements">
+              <strong>Password Requirements:</strong>
+              <ul id="requirements">
+                <li id="length" class="unmet">At least 8 characters</li>
+                <li id="upper" class="unmet">One uppercase letter (A-Z)</li>
+                <li id="lower" class="unmet">One lowercase letter (a-z)</li>
+                <li id="number" class="unmet">One number (0-9)</li>
+                <li id="special" class="unmet">One special character (!@#$%^&*)</li>
+              </ul>
+            </div>
+
+            <button type="submit" id="submitBtn" disabled>Reset Password</button>
+
+            <div id="message" class="message"></div>
+          </form>
+        </div>
+
+        <script>
+          const token = "${token}";
+          const passwordInput = document.getElementById("password");
+          const submitBtn = document.getElementById("submitBtn");
+          const messageDiv = document.getElementById("message");
+          const form = document.getElementById("resetForm");
+
+          const checks = {
+            length: password => password.length >= 8,
+            upper: password => /[A-Z]/.test(password),
+            lower: password => /[a-z]/.test(password),
+            number: password => /[0-9]/.test(password),
+            special: password => /[!@#$%^&*()_+\\-=\\[\\]{};':"\\\\|,.<>\\/?]/.test(password)
+          };
+
+          passwordInput.addEventListener("input", (e) => {
+            const password = e.target.value;
+            let allMet = true;
+
+            for (const [key, check] of Object.entries(checks)) {
+              const element = document.getElementById(key);
+              const met = check(password);
+              
+              if (met) {
+                element.classList.remove("unmet");
+                element.classList.add("met");
+              } else {
+                element.classList.remove("met");
+                element.classList.add("unmet");
+                allMet = false;
+              }
+            }
+
+            submitBtn.disabled = !allMet;
+          });
+
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            messageDiv.innerHTML = "Processing...";
+
+            try {
+              const response = await fetch("/api/auth/reset-password/${token}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ newPassword: passwordInput.value })
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                messageDiv.className = "message success";
+                messageDiv.innerHTML = "✅ " + data.msg + " <br><br> Redirecting to login...";
+                setTimeout(() => {
+                  // Optionally redirect to frontend login page
+                  // window.location.href = "/login";
+                }, 2000);
+              } else {
+                messageDiv.className = "message error";
+                messageDiv.innerHTML = "❌ " + (data.errors?.[0] || data.msg || "Error");
+                submitBtn.disabled = false;
+              }
+            } catch (error) {
+              messageDiv.className = "message error";
+              messageDiv.innerHTML = "❌ Network error: " + error.message;
+              submitBtn.disabled = false;
+            }
+          });
+        </script>
+      </body>
+      </html>
+    `);
+
+  } catch (err) {
+    console.error("Reset password page error:", err);
+    res.status(500).send(`
+      <html>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h2>❌ Server Error</h2>
+          <p>Something went wrong. Please try again.</p>
+        </body>
+      </html>
+    `);
+  }
+};
+
+/**
  * RESET PASSWORD - Update password with reset token
  * POST /api/auth/reset-password/:token
  * Body: { newPassword }
@@ -229,8 +542,26 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ msg: "Reset token required" });
     }
 
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ msg: "Password must be at least 6 characters" });
+    if (!newPassword) {
+      return res.status(400).json({ msg: "New password required" });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        msg: "Password does not meet requirements",
+        errors: passwordValidation.errors,
+        strength: passwordValidation.strength
+      });
+    }
+
+    // Check for common passwords
+    if (isCommonPassword(newPassword)) {
+      return res.status(400).json({
+        msg: "Password is too common. Please choose a stronger password.",
+        errors: ["This password is commonly used and not secure"]
+      });
     }
 
     // Find user with reset token
