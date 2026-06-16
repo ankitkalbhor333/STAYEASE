@@ -8,6 +8,7 @@ import {
   updateProfile,
   getUserById,
   uploadProfileImage,
+  deleteProfileImage,
 } from "../controllers/user.controller.js";
 import { updateProfileSchema } from "../validations/user.validation.js";
 
@@ -24,12 +25,19 @@ router.put(
   updateProfile
 );
 
-// POST /api/users/profile-image - any authenticated user
+// POST /api/users/profile-image - upload profile image
 router.post(
   "/profile-image",
   verifyToken,
   upload.single("image"),
   uploadProfileImage
+);
+
+// DELETE /api/users/profile-image - delete profile image
+router.delete(
+  "/profile-image",
+  verifyToken,
+  deleteProfileImage
 );
 
 // GET /api/users/:id - admin only
