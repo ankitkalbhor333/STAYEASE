@@ -1,4 +1,5 @@
-import Room from "../models/room.model.js";
+import * as RoomModule from "../model/Room.js";
+const Room = RoomModule.default || RoomModule;
 
 export const createRoom = async (payload) => {
   return await Room.create(payload);

@@ -1,21 +1,27 @@
 import express from "express";
 
 import * as roomController from "../controllers/room.controller.js";
-import auth from "../middlewares/auth.middleware.js";
-import upload from "../middlewares/upload.middleware.js";
-import isOwner from "../middlewares/isOwner.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
+import upload from "../config/multer.js";
+import isOwner from "../middleware/isOwner.js";
 
 const router = express.Router();
 
 router.post(
-  "/",
-  auth,
+  "/createRoom",
+  verifyToken,
   upload.array("images", 10),
   roomController.createRoom
 );
 
 router.get(
-  "/",
+  "/getAllRooms",
+  roomController.getAllRooms
+);
+
+// alias for legacy clients that call `/getAllRoom` (singular)
+router.get(
+  "/getAllRoom",
   roomController.getAllRooms
 );
 
@@ -26,7 +32,7 @@ router.get(
 
 router.put(
   "/:id",
-  auth,
+  verifyToken,
   isOwner,
   upload.array("images", 10),
   roomController.updateRoom
@@ -34,7 +40,7 @@ router.put(
 
 router.delete(
   "/:id",
-  auth,
+  verifyToken,
   isOwner,
   roomController.deleteRoom
 );

@@ -1,7 +1,6 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import storage from "multer-storage-cloudinary";  
 
 const uploadDir = path.resolve("uploads");
 const profileDir = path.join(uploadDir, "profiles");

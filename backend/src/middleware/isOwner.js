@@ -1,4 +1,5 @@
-import Room from "../models/room.model.js";
+import * as RoomModule from "../model/Room.js";
+const Room = RoomModule.default || RoomModule;
 
 export default async (req, res, next) => {
   const room = await Room.findById(req.params.id);
