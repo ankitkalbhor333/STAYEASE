@@ -1,4 +1,5 @@
 import * as roomService from "../services/room.service.js";
+import mongoose from "mongoose";
 
 export const createRoom = async (req, res, next) => {
   try {
@@ -16,9 +17,35 @@ export const createRoom = async (req, res, next) => {
   }
 };
 
+export const getAllRooms = async (req, res, next) => {
+  try {
+    const rooms = await roomService.getAllRooms(req.query);
+
+    res.status(200).json({
+      success: true,
+      data: rooms,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getRoomById = async (req, res, next) => {
   try {
-    const room = await roomService.getRoomById(req.params.id);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid room id",
+      });
+    }
+
+    const room = await roomService.getRoomById(id);
+
+    if (!room) {
+      return res.status(404).json({ success: false, message: "Room not found" });
+    }
 
     res.status(200).json({
       success: true,
