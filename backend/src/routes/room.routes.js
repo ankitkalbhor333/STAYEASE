@@ -20,10 +20,7 @@ router.get(
 );
 
 // alias for legacy clients that call `/getAllRoom` (singular)
-router.get(
-  "/getAllRoom",
-  roomController.getAllRooms
-);
+
 
 router.get(
   "/:id",
