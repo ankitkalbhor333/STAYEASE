@@ -134,7 +134,7 @@ const roomSchema = new mongoose.Schema(
       parking: {
         type: Boolean,
         default: false,
-      },
+      },  
 
       washingMachine: {
         type: Boolean,

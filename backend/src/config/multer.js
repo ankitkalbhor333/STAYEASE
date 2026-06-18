@@ -82,16 +82,9 @@ const memoryUpload = multer({
 });
 
 /**
- * Export default as memory upload for room creation
- * This avoids storing files on disk since they go directly to Cloudinary
- */
-export default memoryUpload;
-
-/**
  * Export both options
  */
 export { diskUpload, memoryUpload };
-};
 
 const upload = multer({
   storage,
