@@ -27,10 +27,17 @@ const storage = multer.diskStorage({
     const timestamp = Date.now();
     const ext = path.extname(file.originalname).toLowerCase();
     const safeName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9-_]/g, "-");
-    const filename = `${req.user.id}-${timestamp}${ext}`;
+    const filename = `${req.user?.id || "unknown"}-${timestamp}${ext}`;
     cb(null, filename);
   },
 });
+
+/**
+ * Memory storage for temporary image uploads
+ * Used in multi-step room creation to upload to Cloudinary
+ * Avoids storing files on disk
+ */
+const memoryStorage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   // Check MIME type
@@ -47,6 +54,43 @@ const fileFilter = (req, file, cb) => {
   }
 
   cb(null, true);
+};
+
+/**
+ * Disk storage upload
+ * Used for profile pictures and general file uploads
+ */
+const diskUpload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});
+
+/**
+ * Memory storage upload
+ * Used for multi-step room creation (images uploaded directly to Cloudinary)
+ */
+const memoryUpload = multer({
+  storage: memoryStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB per image
+    files: 10, // Max 10 images
+  },
+});
+
+/**
+ * Export default as memory upload for room creation
+ * This avoids storing files on disk since they go directly to Cloudinary
+ */
+export default memoryUpload;
+
+/**
+ * Export both options
+ */
+export { diskUpload, memoryUpload };
 };
 
 const upload = multer({
