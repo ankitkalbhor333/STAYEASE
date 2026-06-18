@@ -91,17 +91,10 @@ export default memoryUpload;
  * Export both options
  */
 export { diskUpload, memoryUpload };
-};
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB
-  },
-});
-
-// Utility function to delete old profile image
+/**
+ * Utility function to delete old profile image
+ */
 export const deleteProfileImage = (imagePath) => {
   if (!imagePath) return;
   
@@ -116,4 +109,3 @@ export const deleteProfileImage = (imagePath) => {
   }
 };
 
-export default upload;
