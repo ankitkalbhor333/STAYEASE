@@ -240,4 +240,5 @@ roomSchema.index({
   pricePerDay: 1,
 });
 
+
 export default mongoose.model("Room", roomSchema);

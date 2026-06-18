@@ -1,6 +1,7 @@
 import express from "express";
 import * as roomController from "../controllers/room.controller.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import memoryUpload from "../config/multer.js";
 
 const router = express.Router();
 
@@ -16,7 +17,14 @@ router.get("/my-rooms", verifyToken, roomController.getMyRooms);
 /**
  * STEP-BASED UPDATE
  */
-router.patch("/:roomId", verifyToken, roomController.updateRoomStep);
+// Accept multipart/form-data for images step (accept any file field names)
+router.patch(
+	"/:roomId",
+	verifyToken,
+	// use .any() to avoid "Unexpected field" when client uses different field names
+	memoryUpload.any(),
+	roomController.updateRoomStep
+);
 
 /**
  * PUBLISHING
@@ -28,8 +36,12 @@ router.get("/:roomId/publish-readiness", verifyToken, roomController.getPublishR
 /**
  * CRUD OPERATIONS
  */
+router.get("/search", roomController.searchRooms);
 router.get("/:roomId", roomController.getRoomById);
 router.delete("/:roomId", verifyToken, roomController.deleteRoom);
 router.get("/", roomController.getAllRooms);
+
+//search rout
+
 
 export default router;
