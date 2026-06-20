@@ -1,39 +1,60 @@
 import * as reviewService from "../services/review.service.js";
+import { asyncHandler } from "../middleware/asyncHandler.js";
+import { parsePagination } from "../validations/review.validation.js";
 
-export const createReview = async (req, res, next) => {
-  try {
-    const review = await reviewService.createReview(req.user.id, req.body);
-    res.status(201).json({
-      success: true,
-      message: "Review created successfully",
-      data: review,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const sendSuccess = (res, { status = 200, message, data, pagination }) =>
+  res.status(status).json({
+    success: true,
+    message,
+    ...(data !== undefined && { data }),
+    ...(pagination && { pagination }),
+  });
 
-export const updateReview = async (req, res, next) => {
-  try {
-    const review = await reviewService.updateReview(req.params.id, req.user.id, req.body);
-    res.status(200).json({
-      success: true,
-      message: "Review updated successfully",
-      data: review,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+export const createReview = asyncHandler(async (req, res) => {
+  const review = await reviewService.createReview(req.user.id, req.body);
+  sendSuccess(res, {
+    status: 201,
+    message: "Review created successfully",
+    data: review,
+  });
+});
 
-export const deleteReview = async (req, res, next) => {
-  try {
-    await reviewService.deleteReview(req.params.id, req.user.id);
-    res.status(200).json({
-      success: true,
-      message: "Review deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+export const getRoomReviews = asyncHandler(async (req, res) => {
+  const pagination = parsePagination(req.query);
+  const { reviews, pagination: meta } = await reviewService.getRoomReviews(
+    req.params.roomId,
+    pagination
+  );
+
+  sendSuccess(res, {
+    message: "Reviews fetched successfully",
+    data: reviews,
+    pagination: meta,
+  });
+});
+
+export const getReviewById = asyncHandler(async (req, res) => {
+  const review = await reviewService.getReviewById(req.params.id);
+  sendSuccess(res, {
+    message: "Review fetched successfully",
+    data: review,
+  });
+});
+
+export const updateReview = asyncHandler(async (req, res) => {
+  const review = await reviewService.updateReview(
+    req.params.id,
+    req.user.id,
+    req.body
+  );
+
+  sendSuccess(res, {
+    message: "Review updated successfully",
+    data: review,
+  });
+});
+
+export const deleteReview = asyncHandler(async (req, res) => {
+  await reviewService.deleteReview(req.params.id, req.user.id);
+  sendSuccess(res, { message: "Review deleted successfully" });
+});
