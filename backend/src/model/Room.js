@@ -64,16 +64,25 @@ const roomSchema = new mongoose.Schema(
       index: true,
     },
 
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+      },
+    },
+
     area: String,
 
     fullAddress: String,
 
     pincode: String,
 
-    phoneNumber:{
-      type:String,
+    phoneNumber: {
+      type: String,
     },
-
 
     // Pricing
 
@@ -227,8 +236,9 @@ const roomSchema = new mongoose.Schema(
       id: mongoose.Schema.Types.ObjectId,
       name: String,
     },
-  },
-  {
+  }
+
+  ,{
     timestamps: true,
   }
 );
@@ -238,6 +248,7 @@ roomSchema.index({
   state: 1,
   propertyType: 1,
   pricePerDay: 1,
+  location: "2dsphere"
 });
 
 

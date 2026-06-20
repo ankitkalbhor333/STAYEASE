@@ -1,4 +1,5 @@
 import * as RoomModule from "../model/Room.js";
+import { isRoomEditable } from "../utils/room.util.js";
 const Room = RoomModule.default || RoomModule;
 
 /**
@@ -63,10 +64,10 @@ export const isDraftRoom = async (req, res, next) => {
       });
     }
 
-    if (room.status !== "draft") {
+    if (!isRoomEditable(room.status)) {
       return res.status(400).json({
         success: false,
-        message: "This room has already been published. You cannot edit it anymore.",
+        message: "This room cannot be edited",
         currentStatus: room.status,
       });
     }
@@ -173,10 +174,10 @@ export const verifyOwnershipAndDraft = async (req, res, next) => {
       });
     }
 
-    if (room.status !== "draft") {
+    if (!isRoomEditable(room.status)) {
       return res.status(400).json({
         success: false,
-        message: "This room has already been published and cannot be edited",
+        message: "This room cannot be edited",
         currentStatus: room.status,
       });
     }

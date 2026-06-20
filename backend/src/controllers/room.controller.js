@@ -1,6 +1,6 @@
 import * as roomService from "../services/room.service.js";
 import mongoose from "mongoose";
-import { uploadRoomImages } from "../services/room.service.js";
+import { getRoomOwnerId, isRoomEditable } from "../utils/room.util.js";
 /**
  * CREATE DRAFT ROOM
  * POST /api/v1/rooms
@@ -70,19 +70,23 @@ export const updateRoomStep = async (req, res, next) => {
       });
     }
 
-    
-    if (room.ownerId._id.toString() !== req.user.id) {
+    const ownerId = getRoomOwnerId(room);
+    if (ownerId !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "You are not authorized to update this room",
       });
     }
 
-    // Only draft rooms can be updated
-    if (room.status !== "draft") {
+    const status = room.status || "draft";
+    if (!isRoomEditable(status)) {
       return res.status(400).json({
         success: false,
-        message: "Only draft rooms can be updated",
+        message:
+          status === "deleted"
+            ? "Deleted rooms cannot be updated"
+            : "This room cannot be updated",
+        currentStatus: status,
       });
     }
 
@@ -102,15 +106,34 @@ export const updateRoomStep = async (req, res, next) => {
       message: `${step} step updated successfully`,
       data: {
         roomId: updatedRoom._id,
+        status: updatedRoom.status,
         step,
         currentStep: updatedRoom.currentStep,
         completedSteps: updatedRoom.completedSteps,
         progress: progress.progressPercentage,
         nextStep: progress.nextStep,
+        ...(step === "location" && {
+          location: updatedRoom.location,
+          city: updatedRoom.city,
+          state: updatedRoom.state,
+          country: updatedRoom.country,
+          fullAddress: updatedRoom.fullAddress,
+          area: updatedRoom.area,
+          pincode: updatedRoom.pincode,
+        }),
       },
     });
   } catch (error) {
-    next(error);
+    const statusCode = error.message?.includes("latitude") ||
+      error.message?.includes("longitude") ||
+      error.message?.includes("Geocoding")
+      ? 400
+      : 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to update room step",
+    });
   }
 };
 
@@ -448,3 +471,4 @@ export const searchRooms = async (
     next(error);
   }
 };
+
