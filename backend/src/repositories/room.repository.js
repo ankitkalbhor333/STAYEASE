@@ -35,21 +35,25 @@ export const getDraftRoomsByUser = async (userId) => {
  * Update specific step in a room
  */
 export const updateRoomStep = async (roomId, step, stepData) => {
+  const room = await Room.findById(roomId);
+  if (!room) return null;
+
   const updateData = {
     ...stepData,
-    currentStep: step,
     lastSavedAt: new Date(),
   };
 
-  // Add step to completedSteps if not already there
-  const room = await Room.findById(roomId);
-  if (room && !room.completedSteps.includes(step)) {
-    updateData.completedSteps = [...room.completedSteps, step];
+  // Only track step progress while room is still a draft
+  if (!room.status || room.status === "draft") {
+    updateData.currentStep = step;
+    if (!room.completedSteps.includes(step)) {
+      updateData.completedSteps = [...room.completedSteps, step];
+    }
   }
 
   return await Room.findByIdAndUpdate(roomId, updateData, {
     new: true,
-    runValidators: false, // Don't validate required fields during partial update
+    runValidators: false,
   });
 };
 

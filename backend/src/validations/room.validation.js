@@ -80,6 +80,16 @@ export const locationStepValidator = [
     .withMessage("Phone number is required")
     .matches(/^[0-9]{10,15}$/)
     .withMessage("Invalid phone number format"),
+
+  body("latitude")
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage("Latitude must be between -90 and 90"),
+
+  body("longitude")
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage("Longitude must be between -180 and 180"),
 ];
 
 /**

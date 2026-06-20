@@ -6,6 +6,7 @@ import {
   deleteImagesFromCloudinary,
   validateImageFiles,
 } from "../utils/imageUpload.js";
+import { getAddressFromCoordinates } from "../utils/geocode.js";
 
 const Room = RoomModule.default || RoomModule;
 
@@ -41,6 +42,44 @@ export const updateRoomStep = async (roomId, step, stepData, files = null) => {
   }
 
   const updateData = { ...stepData };
+
+  // Location step: reverse geocode when coordinates are provided
+  if (step === "location") {
+    const latitude = stepData.latitude ?? stepData.lat;
+    const longitude = stepData.longitude ?? stepData.lng;
+
+    if (latitude != null && longitude != null) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+
+      if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        throw new Error("Invalid latitude or longitude");
+      }
+
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new Error("Latitude or longitude is out of range");
+      }
+
+      const address = await getAddressFromCoordinates(lat, lng);
+
+      updateData.location = {
+        type: "Point",
+        coordinates: [lng, lat],
+      };
+
+      updateData.city = stepData.city || address.city;
+      updateData.state = stepData.state || address.state;
+      updateData.country = stepData.country || address.country;
+      updateData.fullAddress = stepData.fullAddress || address.fullAddress;
+      updateData.pincode = stepData.pincode || address.pincode;
+      updateData.area = stepData.area || address.area;
+
+      delete updateData.latitude;
+      delete updateData.longitude;
+      delete updateData.lat;
+      delete updateData.lng;
+    }
+  }
 
   // Handle image upload for images step
   if (step === "images" && files) {
