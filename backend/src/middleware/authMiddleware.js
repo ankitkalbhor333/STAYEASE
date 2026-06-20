@@ -28,6 +28,7 @@ export const verifyToken = async (req, res, next) => {
     if (isTokenBlacklisted(token)) {
       return res.status(401).json({
         msg: "Token has been revoked. Please login again.",
+        code: "TOKEN_REVOKED",
       });
     }
 
@@ -52,12 +53,14 @@ export const verifyToken = async (req, res, next) => {
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({
         msg: "Token has expired. Please login again.",
+        code: "SESSION_EXPIRED",
       });
     }
 
     if (err.name === "JsonWebTokenError") {
       return res.status(401).json({
         msg: "Invalid token. Authentication failed.",
+        code: "INVALID_TOKEN",
       });
     }
 
