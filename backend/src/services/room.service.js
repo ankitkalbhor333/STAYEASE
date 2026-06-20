@@ -237,3 +237,118 @@ export const updateRoom = async (id, data) => {
     new: true,
   });
 };
+
+
+
+
+export const searchRooms = async (
+  query
+) => {
+  const filter = {
+    status: "active",
+  };
+
+  // City
+
+  if (query.city) {
+    filter.city = {
+      $regex: query.city,
+      $options: "i",
+    };
+  }
+
+  // Price
+
+  if (query.minPrice || query.maxPrice) {
+    filter.pricePerDay = {};
+
+    if (query.minPrice) {
+      filter.pricePerDay.$gte =
+        Number(query.minPrice);
+    }
+
+    if (query.maxPrice) {
+      filter.pricePerDay.$lte =
+        Number(query.maxPrice);
+    }
+  }
+
+  // Guests
+
+  if (query.guests) {
+    filter.maxGuests = {
+      $gte: Number(query.guests),
+    };
+  }
+
+  // Amenities
+
+  if (query.wifi === "true") {
+    filter["amenities.wifi"] = true;
+  }
+
+  if (query.parking === "true") {
+    filter["amenities.parking"] = true;
+  }
+
+  if (
+    query.airConditioner === "true"
+  ) {
+    filter[
+      "amenities.airConditioner"
+    ] = true;
+  }
+
+  // Search By Title
+
+  if (query.keyword) {
+    filter.title = {
+      $regex: query.keyword,
+      $options: "i",
+    };
+  }
+
+  // Sorting
+
+  let sortOption = {
+    createdAt: -1,
+  };
+
+  switch (query.sort) {
+    case "priceAsc":
+      sortOption = {
+        pricePerDay: 1,
+      };
+      break;
+
+    case "priceDesc":
+      sortOption = {
+        pricePerDay: -1,
+      };
+      break;
+
+    case "newest":
+      sortOption = {
+        createdAt: -1,
+      };
+      break;
+  }
+
+  // Pagination
+
+  const page =
+    Number(query.page) || 1;
+
+  const limit =
+    Number(query.limit) || 10;
+
+  const skip =
+    (page - 1) * limit;
+
+  const rooms = await Room.find(filter)
+    .sort(sortOption)
+    .skip(skip)
+    .limit(limit);
+
+  return rooms;
+};

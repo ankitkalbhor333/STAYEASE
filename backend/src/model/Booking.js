@@ -34,6 +34,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
+    guests: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
+
     bookingStatus: {
       type: String,
       enum: [

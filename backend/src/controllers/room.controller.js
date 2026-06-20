@@ -1,6 +1,6 @@
 import * as roomService from "../services/room.service.js";
 import mongoose from "mongoose";
-
+import { uploadRoomImages } from "../services/room.service.js";
 /**
  * CREATE DRAFT ROOM
  * POST /api/v1/rooms
@@ -70,6 +70,7 @@ export const updateRoomStep = async (req, res, next) => {
       });
     }
 
+    
     if (room.ownerId._id.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -424,3 +425,26 @@ export const getRoomStats = async (req, res, next) => {
   }
 };
 
+
+
+
+
+
+export const searchRooms = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const rooms =
+      await roomService.searchRooms(req.query);
+
+    res.status(200).json({
+      success: true,
+      count: rooms.length,
+      data: rooms,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

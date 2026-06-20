@@ -6,6 +6,11 @@ import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
 import { validatePassword, isCommonPassword } from "../utils/passwordValidator.js";
 import { blacklistToken } from "../middleware/tokenBlacklist.js";
+import {
+  getJwtExpiresIn,
+  getTokenExpiresAt,
+  getTokenRemainingSeconds,
+} from "../utils/jwtSession.js";
 
 /**
  * REGISTER - Create new user account
@@ -167,17 +172,19 @@ export const login = async (req, res) => {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
 
-    // Generate JWT token
+    const expiresIn = getJwtExpiresIn();
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn }
     );
 
-    res.json({ 
+    res.json({
       msg: "Login successful",
       token,
-      user: { id: user._id, name: user.name, email: user.email }
+      expiresAt: getTokenExpiresAt(token),
+      expiresIn,
+      user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -674,10 +681,7 @@ export const logout = async (req, res) => {
       });
     }
 
-    // Blacklist the token (invalidate it)
-    // Token expires in 7 days, so blacklist it for 7 days
-    const tokenExpiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
-    blacklistToken(token, tokenExpiresIn);
+    blacklistToken(token, getTokenRemainingSeconds(token));
 
     res.json({ 
       msg: "Logout successful. Token has been invalidated.",
