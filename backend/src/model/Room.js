@@ -21,14 +21,12 @@ const roomSchema = new mongoose.Schema(
 
     title: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 150,
     },
 
     description: {
       type: String,
-      required: true,
       maxlength: 3000,
     },
 
@@ -43,32 +41,37 @@ const roomSchema = new mongoose.Schema(
         "Flat",
         "Room",
       ],
-      required: true,
     },
 
     roomType: {
       type: String,
       enum: ["Entire Place", "Private Room", "Shared Room"],
-      required: true,
     },
 
     // Location
 
     country:{
         type: String,
- 
     } ,
 
     state: {
       type: String,
-      required: true,
       index: true,
     },
 
     city: {
       type: String,
-      required: true,
       index: true,
+    },
+
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+      },
     },
 
     area: String,
@@ -77,17 +80,14 @@ const roomSchema = new mongoose.Schema(
 
     pincode: String,
 
-    phoneNumber:{
-      type:String,
-      required:true,
+    phoneNumber: {
+      type: String,
     },
-
 
     // Pricing
 
     pricePerDay: {
       type: Number,
-      required: true,
       min: 0,
       index: true,
     },
@@ -110,25 +110,21 @@ const roomSchema = new mongoose.Schema(
 
     maxGuests: {
       type: Number,
-      required: true,
       min: 1,
     },
 
     bedrooms: {
       type: Number,
-      required: true,
       min: 1,
     },
 
     beds: {
       type: Number,
-      required: true,
       min: 1,
-    }
-,
-   bathrooms: {
+    },
+
+    bathrooms: {
       type: Number,
-      required: true,
       min: 1,
     },
     // Amenities
@@ -147,7 +143,7 @@ const roomSchema = new mongoose.Schema(
       parking: {
         type: Boolean,
         default: false,
-      },
+      },  
 
       washingMachine: {
         type: Boolean,
@@ -178,11 +174,10 @@ const roomSchema = new mongoose.Schema(
 
     availableFrom: {
       type: Date,
-      required: true,},
+    },
 
     availableTo: {
-      type:Date,
-      required: true,
+      type: Date,
     },
 
     // Owner
@@ -205,15 +200,45 @@ const roomSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // Status
+    // Status & Step Tracking
 
     status: {
       type: String,
-      enum: ["active", "inactive", "deleted"],
-      default: "active",
+      enum: ["draft", "active", "inactive", "deleted"],
+      default: "draft",
+      index: true,
     },
-  },
-  {
+
+    completedSteps: {
+      type: [String],
+      enum: ["basic", "location", "pricing", "capacity", "amenities", "images", "availability"],
+      default: [],
+    },
+
+    currentStep: {
+      type: String,
+      enum: ["basic", "location", "pricing", "capacity", "amenities", "images", "availability"],
+      default: "basic",
+    },
+
+    publishedAt: {
+      type: Date,
+      default: null,
+    },
+
+    lastSavedAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+    // Workspace (for future multi-listing feature)
+    workspace: {
+      id: mongoose.Schema.Types.ObjectId,
+      name: String,
+    },
+  }
+
+  ,{
     timestamps: true,
   }
 );
@@ -223,6 +248,8 @@ roomSchema.index({
   state: 1,
   propertyType: 1,
   pricePerDay: 1,
+  location: "2dsphere"
 });
+
 
 export default mongoose.model("Room", roomSchema);

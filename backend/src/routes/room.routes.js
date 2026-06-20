@@ -1,48 +1,44 @@
 import express from "express";
-
 import * as roomController from "../controllers/room.controller.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
-import upload from "../config/multer.js";
-import isOwner from "../middleware/isOwner.js";
+import memoryUpload from "../config/multer.js";
 
 const router = express.Router();
 
-router.post(
-  "/createRoom",
-  verifyToken,
-  upload.array("images", 10),
-  roomController.createRoom
+/**
+ * DRAFT ROOM CREATION WORKFLOW
+ */
+router.post("/", verifyToken, roomController.createDraftRoom);
+router.get("/resume-draft", verifyToken, roomController.getLatestDraftRoom);
+router.get("/my-draft-rooms", verifyToken, roomController.getDraftRooms);
+router.get("/stats", verifyToken, roomController.getRoomStats);
+router.get("/my-rooms", verifyToken, roomController.getMyRooms);
+
+/**
+ * STEP-BASED UPDATE
+ */
+// Accept multipart/form-data for images step (accept any file field names)
+router.patch(
+	"/:roomId",
+	verifyToken,
+	// use .any() to avoid "Unexpected field" when client uses different field names
+	memoryUpload.any(),
+	roomController.updateRoomStep
 );
 
-router.get(
-  "/getAllRooms",
-  roomController.getAllRooms
-);
+/**
+ * PUBLISHING
+ */
+router.patch("/:roomId/publish", verifyToken, roomController.publishRoom);
+router.get("/:roomId/progress", roomController.getRoomProgress);
+router.get("/:roomId/publish-readiness", verifyToken, roomController.getPublishReadiness);
 
-// alias for legacy clients that call `/getAllRoom` (singular)
-router.get(
-  "/getAllRoom",
-  roomController.getAllRooms
-);
-
-router.get(
-  "/:id",
-  roomController.getRoomById
-);
-
-router.put(
-  "/:id",
-  verifyToken,
-  isOwner,
-  upload.array("images", 10),
-  roomController.updateRoom
-);
-
-router.delete(
-  "/:id",
-  verifyToken,
-  isOwner,
-  roomController.deleteRoom
-);
+/**
+ * CRUD OPERATIONS
+ */
+router.get("/search", roomController.searchRooms);
+router.get("/:roomId", roomController.getRoomById);
+router.delete("/:roomId", verifyToken, roomController.deleteRoom);
+router.get("/", roomController.getAllRooms);
 
 export default router;

@@ -1,0 +1,477 @@
+{
+  "info": {
+    "name": "StayEase - Multi-Step Room Creation API",
+    "description": "Production-grade API for Airbnb-style multi-step room creation wizard",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{JWT_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1️⃣ DRAFT CREATION",
+      "item": [
+        {
+          "name": "Create Draft Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms"]
+            },
+            "description": "Create an empty draft room to start multi-step creation\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Draft room created. Start filling details step by step.\",\n  \"data\": {\n    \"roomId\": \"507f1f77bcf86cd799439011\",\n    \"status\": \"draft\",\n    \"currentStep\": \"basic\",\n    \"completedSteps\": []\n  }\n}\n```\n\nSave the `roomId` for next requests!"
+          }
+        },
+        {
+          "name": "Resume Latest Draft",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/resume-draft",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "resume-draft"]
+            },
+            "description": "Get the latest draft room to resume where you left off"
+          }
+        },
+        {
+          "name": "Get All My Drafts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/my-draft-rooms",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "my-draft-rooms"]
+            },
+            "description": "Get all draft rooms for current user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2️⃣ STEP 1: BASIC INFORMATION",
+      "item": [
+        {
+          "name": "Update Basic Step",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Luxury 2-Bedroom Apartment in Downtown\",\n  \"description\": \"Stunning 2-bedroom apartment with modern amenities in the heart of downtown. Perfect for families or groups. Features include high ceilings, natural light, and contemporary furnishings.\",\n  \"propertyType\": \"Apartment\",\n  \"roomType\": \"Entire Place\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=basic",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "basic"
+                }
+              ]
+            },
+            "description": "Update Step 1: Basic Information\n\n**Required Fields:**\n- `title` (5-150 characters)\n- `description` (20-3000 characters)\n- `propertyType` (Apartment, House, Villa, PG, Hostel, Flat, Room)\n- `roomType` (Entire Place, Private Room, Shared Room)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3️⃣ STEP 2: LOCATION",
+      "item": [
+        {
+          "name": "Update Location Step",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country\": \"India\",\n  \"state\": \"Maharashtra\",\n  \"city\": \"Mumbai\",\n  \"area\": \"Bandra\",\n  \"fullAddress\": \"123 Marine Drive, Bandra, Mumbai, Maharashtra 400050\",\n  \"pincode\": \"400050\",\n  \"phoneNumber\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=location",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "location"
+                }
+              ]
+            },
+            "description": "Update Step 2: Location Information\n\n**Required Fields:**\n- `country`\n- `state`\n- `city`\n- `fullAddress` (minimum 10 characters)\n- `pincode` (5-10 digits)\n- `phoneNumber` (10-15 digits)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4️⃣ STEP 3: PRICING",
+      "item": [
+        {
+          "name": "Update Pricing Step",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pricePerDay\": 5000,\n  \"pricePerWeek\": 33000,\n  \"pricePerMonth\": 120000,\n  \"cleaningFee\": 500,\n  \"securityDeposit\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=pricing",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "pricing"
+                }
+              ]
+            },
+            "description": "Update Step 3: Pricing\n\n**Required Fields:**\n- `pricePerDay` (minimum 0)\n\n**Optional Fields:**\n- `pricePerWeek`\n- `pricePerMonth`\n- `cleaningFee` (default: 0)\n- `securityDeposit` (default: 0)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5️⃣ STEP 4: CAPACITY",
+      "item": [
+        {
+          "name": "Update Capacity Step",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxGuests\": 6,\n  \"bedrooms\": 2,\n  \"beds\": 3,\n  \"bathrooms\": 2\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=capacity",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "capacity"
+                }
+              ]
+            },
+            "description": "Update Step 4: Capacity\n\n**Required Fields:**\n- `maxGuests` (1-100)\n- `bedrooms` (1-50)\n- `beds` (1-100)\n- `bathrooms` (1-50)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6️⃣ STEP 5: AMENITIES",
+      "item": [
+        {
+          "name": "Update Amenities Step",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amenities\": {\n    \"wifi\": true,\n    \"kitchen\": true,\n    \"parking\": true,\n    \"washingMachine\": true,\n    \"airConditioner\": true,\n    \"tv\": true,\n    \"geyser\": true,\n    \"workspace\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=amenities",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "amenities"
+                }
+              ]
+            },
+            "description": "Update Step 5: Amenities\n\n**Optional Fields (all boolean):**\n- `amenities.wifi`\n- `amenities.kitchen`\n- `amenities.parking`\n- `amenities.washingMachine`\n- `amenities.airConditioner`\n- `amenities.tv`\n- `amenities.geyser`\n- `amenities.workspace`"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7️⃣ STEP 6: IMAGES",
+      "item": [
+        {
+          "name": "Upload Images",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": "/path/to/image1.jpg"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": "/path/to/image2.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=images",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "images"
+                }
+              ]
+            },
+            "description": "Upload images for the room (Step 6)\n\n**Requirements:**\n- Multiple images (up to 10)\n- Formats: JPEG, PNG, GIF, WebP\n- Max 5MB per image\n- Form field name: `images`\n\n**Query Parameters:**\n- `replaceAll=true` (default) - Replace existing images\n- `replaceAll=false` - Add to existing images"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8️⃣ STEP 7: AVAILABILITY",
+      "item": [
+        {
+          "name": "Update Availability Step",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"availableFrom\": \"2026-07-01T00:00:00Z\",\n  \"availableTo\": \"2027-12-31T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}?step=availability",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"],
+              "query": [
+                {
+                  "key": "step",
+                  "value": "availability"
+                }
+              ]
+            },
+            "description": "Update Step 7: Availability\n\n**Required Fields:**\n- `availableFrom` (ISO8601 format, must be in future)\n- `availableTo` (ISO8601 format, must be after availableFrom)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ PROGRESS & PUBLISHING",
+      "item": [
+        {
+          "name": "Get Room Progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}/progress",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}", "progress"]
+            },
+            "description": "Get room completion progress (0-100%)\n\nReturns:\n- `completedSteps` array\n- `totalSteps` count\n- `progressPercentage`\n- `currentStep`\n- `nextStep`"
+          }
+        },
+        {
+          "name": "Check Publishing Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}/publish-readiness",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}", "publish-readiness"]
+            },
+            "description": "Check if room is ready for publishing\n\nReturns detailed validation report with:\n- `isReadyToPublish` boolean\n- `progress` percentage\n- `nextStepToComplete`\n- `missingFields` array\n- `stepValidation` object with errors per step"
+          }
+        },
+        {
+          "name": "Publish Room",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}/publish",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}", "publish"]
+            },
+            "description": "Publish a draft room (convert to active)\n\n**Requirements:**\nAll 7 steps must be completed:\n1. ✅ Basic information\n2. ✅ Location\n3. ✅ Pricing\n4. ✅ Capacity\n5. ✅ Amenities\n6. ✅ At least 1 image\n7. ✅ Availability\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Room published successfully\",\n  \"data\": {\n    \"roomId\": \"507f1f77bcf86cd799439011\",\n    \"status\": \"active\",\n    \"publishedAt\": \"2026-06-18T10:30:00Z\"\n  }\n}\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📚 VIEWING & MANAGEMENT",
+      "item": [
+        {
+          "name": "Get Room Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"]
+            },
+            "description": "Get complete room details (draft or published)"
+          }
+        },
+        {
+          "name": "Get My Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/my-rooms?status=active",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "my-rooms"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by status: draft, active, inactive"
+                }
+              ]
+            },
+            "description": "Get all user's rooms (with optional status filter)"
+          }
+        },
+        {
+          "name": "Get Room Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/stats",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "stats"]
+            },
+            "description": "Get room statistics:\n- Number of draft rooms\n- Number of active rooms\n- Number of inactive rooms\n- Total rooms"
+          }
+        },
+        {
+          "name": "Get All Published Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms?city=Mumbai&state=Maharashtra&minPrice=1000&maxPrice=10000&page=1&limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms"],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Mumbai"
+                },
+                {
+                  "key": "state",
+                  "value": "Maharashtra"
+                },
+                {
+                  "key": "propertyType",
+                  "value": "Apartment"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "1000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "10000"
+                },
+                {
+                  "key": "guests",
+                  "value": "2"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all published rooms with filters (Public endpoint)\n\n**Query Parameters:**\n- `city` - Filter by city\n- `state` - Filter by state\n- `propertyType` - Filter by property type\n- `minPrice` - Minimum price per day\n- `maxPrice` - Maximum price per day\n- `guests` - Minimum number of guests\n- `page` - Page number (default: 1)\n- `limit` - Items per page (default: 10)"
+          }
+        },
+        {
+          "name": "Delete Room",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/rooms/{{ROOM_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "rooms", "{{ROOM_ID}}"]
+            },
+            "description": "Delete a room (soft delete - marks as deleted, not permanent)"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "JWT_TOKEN",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "ROOM_ID",
+      "value": "507f1f77bcf86cd799439011",
+      "type": "string"
+    }
+  ]
+}
