@@ -5,6 +5,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import roomRoutes from "./src/routes/room.routes.js";
 import bookingRoutes from "./src/routes/booking.routes.js";
+import paymentRoutes from "./src/routes/payment.routes.js";
 import { startBlacklistCleanup } from "./src/middleware/tokenBlacklist.js";
 import { errorHandler } from "./src/middleware/error.middleware.js";
 
@@ -19,6 +20,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/v1/rooms", roomRoutes);   
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use(errorHandler);
 

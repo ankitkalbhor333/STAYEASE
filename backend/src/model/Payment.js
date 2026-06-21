@@ -6,26 +6,45 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",
       required: true,
+      index: true,
     },
 
-    razorpayOrderId: String,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
-    razorpayPaymentId: String,
+    razorpayOrderId: {
+      type: String,
+      sparse: true,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      sparse: true,
+    },
 
     amount: {
       type: Number,
       required: true,
     },
 
+    currency: {
+      type: String,
+      default: "INR",
+    },
+
     status: {
       type: String,
-      enum: [
-        "PENDING",
-        "SUCCESS",
-        "FAILED",
-        "REFUNDED",
-      ],
+      enum: ["PENDING", "SUCCESS", "FAILED", "REFUNDED"],
       default: "PENDING",
+    },
+
+    /** Idempotency: track processed webhook event ids */
+    webhookEventId: {
+      type: String,
+      sparse: true,
     },
   },
   {
@@ -33,9 +52,8 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-const Payment = mongoose.model(
-  "Payment",
-  paymentSchema
-);
+paymentSchema.index({ razorpayOrderId: 1 }, { unique: true, sparse: true });
+
+const Payment = mongoose.model("Payment", paymentSchema);
 
 export default Payment;
