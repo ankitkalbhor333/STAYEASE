@@ -8,6 +8,19 @@ import fs from "fs";
  * @returns {Promise} - { imageUrl, publicId }
  */
 export const uploadImageToCloudinary = async (file, folder = "stayease/rooms") => {
+  if (!file) {
+    throw new Error("No file provided for upload");
+  }
+
+  // Multer memory storage should provide a Buffer
+  if (!file.buffer) {
+    throw new Error(`File buffer is missing. File: ${file.originalname || "<unknown>"}, Size: ${file.size || 0}, Mimetype: ${file.mimetype || "<unknown>"}`);
+  }
+
+  if (file.buffer.length === 0) {
+    throw new Error(`Empty file buffer for ${file.originalname || "<unknown>"}`);
+  }
+
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {

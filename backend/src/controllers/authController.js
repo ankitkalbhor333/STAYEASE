@@ -24,8 +24,8 @@ export const register = async (req, res) => {
 
     // Validation
     if (!name || !email || !phone || !password) {
-      return res.status(400).json({ 
-        msg: "Please provide name, email, phone, and password" 
+      return res.status(400).json({
+        msg: "Please provide name, email, phone, and password"
       });
     }
 
@@ -94,12 +94,12 @@ export const register = async (req, res) => {
           <p>This link expires in 24 hours.</p>
         `
       );
-      res.status(201).json({ 
+      res.status(201).json({
         msg: "Registration successful! Check your email to verify your account."
       });
     } catch (emailError) {
       console.error("Email sending failed:", emailError.message);
-      res.status(201).json({ 
+      res.status(201).json({
         msg: "Registration successful! Email verification may be delayed."
       });
     }
@@ -124,7 +124,7 @@ export const verifyEmail = async (req, res) => {
 
     // Find user with token
     const user = await User.findOne({ verificationToken: token });
-    
+
     if (!user) {
       return res.status(400).json({ msg: "Invalid or expired verification token" });
     }
@@ -608,9 +608,9 @@ export const resetPassword = async (req, res) => {
 export const testEmail = async (req, res) => {
   try {
     const testEmail = process.env.EMAIL_USER;
-    
+
     if (!testEmail) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         msg: "EMAIL_USER not configured in .env",
         debug: {
           EMAIL_USER: process.env.EMAIL_USER ? "✓ Set" : "✗ Not set",
@@ -639,7 +639,7 @@ export const testEmail = async (req, res) => {
       `
     );
 
-    res.json({ 
+    res.json({
       msg: "Test email sent successfully!",
       sentTo: testEmail,
       debug: {
@@ -652,7 +652,7 @@ export const testEmail = async (req, res) => {
 
   } catch (err) {
     console.error("❌ Test email error:", err.message);
-    res.status(500).json({ 
+    res.status(500).json({
       msg: "Failed to send test email",
       error: err.message,
       debug: {
@@ -676,14 +676,14 @@ export const logout = async (req, res) => {
     const token = req.token;
 
     if (!token) {
-      return res.status(400).json({ 
-        msg: "No token found. Unable to logout." 
+      return res.status(400).json({
+        msg: "No token found. Unable to logout."
       });
     }
 
     blacklistToken(token, getTokenRemainingSeconds(token));
 
-    res.json({ 
+    res.json({
       msg: "Logout successful. Token has been invalidated.",
       user: {
         id: req.user.id,
