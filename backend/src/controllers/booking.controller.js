@@ -1,152 +1,46 @@
-import Booking from "../model/Booking.js";
-import Room from "../model/Room.js";
+import * as bookingService from "../services/booking.service.js";
+import { asyncHandler } from "../middleware/asyncHandler.js";
 
-export const createBooking=async(req,res)=>{
- try{
-  const {
-    roomId,
-    checkInDate,
-    checkOutDate,
-    checkIn,
-    checkOut,
-    guests = 1,
-  } = req.body;
+const sendSuccess = (res, { status = 200, message, data }) =>
+  res.status(status).json({ success: true, message, data });
 
-  const resolvedCheckIn = checkInDate || checkIn;
-  const resolvedCheckOut = checkOutDate || checkOut;
+export const createBooking = asyncHandler(async (req, res) => {
+  const { booking, payment } = await bookingService.createBooking(
+    req.user.id,
+    req.body
+  );
 
-  if (!roomId || !resolvedCheckIn || !resolvedCheckOut) {
-    return res.status(400).json({
-      success: false,
-      message: "roomId, checkIn/checkInDate, and checkOut/checkOutDate are required",
-    });
-  }
-
-  const room = await Room.findById(roomId);
-  if(!room){
-    return res.status(404).json({
-      success:false,
-      message:"Room not found"
-    });
-  }
-
-
-const startDate = new Date(resolvedCheckIn);
-const endDate = new Date(resolvedCheckOut);
-
-if (startDate >= endDate) {
-  return res.status(400).json({
-    success: false,
-    message: "Check-out date must be after check-in date",
+  sendSuccess(res, {
+    status: 201,
+    message:
+      "Booking created. Complete payment within the hold window to confirm.",
+    data: { booking, payment },
   });
-}
-
-const existingBooking = await Booking.findOne({
-  roomId: roomId,
-  bookingStatus: "CONFIRMED",
-  checkIn: { $lt: endDate },
-  checkOut: { $gt: startDate },
 });
 
-if (existingBooking) {
-  return res.status(400).json({
-    success: false,
-    message: "Room is already booked for the selected dates",
+export const getMyBookings = asyncHandler(async (req, res) => {
+  const bookings = await bookingService.getMyBookings(req.user.id);
+  sendSuccess(res, {
+    message: "Bookings fetched successfully",
+    data: bookings,
   });
-}
-
-const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
-const totalAmount = days * room.pricePerDay;
-
-const booking = await Booking.create({
-  userId: req.user.id,
-  roomId: roomId,
-  checkIn: startDate,
-  checkOut: endDate,
-  totalDays: days,
-  totalAmount,
-  guests: Number(guests),
-  bookingStatus: "CONFIRMED",
 });
 
-return res.status(201).json({
-  success: true,
-  message: "Booking created successfully",
-  booking,
-});
-}
- catch(error){
-  return res.status(500).json({
-    success:false,    message:"Failed to create booking",
-    error:error.message
-
+export const getBookingById = asyncHandler(async (req, res) => {
+  const result = await bookingService.getBookingById(req.params.id, req.user.id);
+  sendSuccess(res, {
+    message: "Booking fetched successfully",
+    data: result,
   });
-}
-}
+});
 
-export const getMyBookings=async(req,res)=>{
-  
-  try{
-    const booking = await Booking.find({userId:req.user.id}).populate("roomId");
-    return res.status(200).json({
-      success:true,
-      message:"Bookings fetched successfully",
-      booking
-    });
-  }
-  catch(error){
-    return res.status(500).json({
-      success:false,
-      message:"Failed to fetch bookings",
-      error:error.message
-    });
-}
-}
-
-export const getsingleBooking=async(req,res)=>{
-  try{
-    const booking = await Booking.findById(req.params.id)
-      .populate("roomId")
-      .populate("userId");
-    if(!booking){
-      return res.status(404).json({
-        success:false,
-        message:"Booking not found"
-      });
-    }
-    return res.status(200).json({
-      success:true,
-      message:"Booking fetched successfully",})
-  }catch(error){
-    return res.status(500).json({
-      success:false,
-      message:"Failed to fetch booking",
-      error:error.message
-    })
-  }
-}
-
-export const cancelBooking=async (req,res)=>{
-  try{
-    const  booking=await Booking.findById(req.params.id);
-    if(!booking){
-      return res.status(404).json({
-        success:false,
-        message:"Booking not found"
-      });
-    }
-    booking.bookingStatus="CANCELLED";
-    await booking.save();
-    return res.status(200).json({
-      success:true,
-      message:"Booking cancelled successfully"
-    });
-  }
-
-  catch(error){
-    return res.status(500).json({
-      success:false,
-      message:"Failed to cancel booking",
-      error:error.message
-    });
-  }}
+export const cancelBooking = asyncHandler(async (req, res) => {
+  const booking = await bookingService.cancelBooking(
+    req.params.id,
+    req.user.id
+  );
+  sendSuccess(res, {
+    message: "Booking cancelled successfully",
+    data: booking,
+  });
+});
