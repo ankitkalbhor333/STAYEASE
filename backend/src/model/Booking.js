@@ -60,6 +60,12 @@ const bookingSchema = new mongoose.Schema(
       ],
       default: "PENDING",
     },
+
+  /** Pending bookings expire if payment is not completed in time */
+    paymentExpiresAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

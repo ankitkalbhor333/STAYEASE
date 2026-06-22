@@ -1,24 +1,42 @@
 import mongoose from "mongoose";
 import Review from "../model/Review.js";
-import * as RoomModule from "../model/Room.js";
+import Room from "../model/Room.js";
+import { toObjectId } from "../utils/objectId.util.js";
 
-const Room = RoomModule.default || RoomModule;
+const USER_FIELDS = "name";
 
-export const createReview = async (reviewData) => {
-  return await Review.create(reviewData);
+export const create = (data) => Review.create(data);
+
+export const findById = (reviewId) =>
+  Review.findById(reviewId).populate("userId", USER_FIELDS);
+
+export const findByRoomAndUser = (roomId, userId) =>
+  Review.findOne({ roomId, userId });
+
+export const findByRoom = (roomId, { page, limit }) => {
+  const skip = (page - 1) * limit;
+
+  return Promise.all([
+    Review.find({ roomId })
+      .populate("userId", USER_FIELDS)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Review.countDocuments({ roomId }),
+  ]);
 };
 
-export const getReviewById = async (reviewId) => {
-  return await Review.findById(reviewId);
-};
+export const updateById = (reviewId, data) =>
+  Review.findByIdAndUpdate(reviewId, data, {
+    new: true,
+    runValidators: true,
+  }).populate("userId", USER_FIELDS);
 
-export const getReviewByRoomAndUser = async (roomId, userId) => {
-  return await Review.findOne({ roomId, userId });
-};
+export const deleteById = (reviewId) => Review.findByIdAndDelete(reviewId);
 
-export const getRoomReviewStats = async (roomId) => {
-  const stats = await Review.aggregate([
-    { $match: { roomId: mongoose.Types.ObjectId(roomId) } },
+export const aggregateRoomStats = async (roomId) => {
+  const [result] = await Review.aggregate([
+    { $match: { roomId: toObjectId(roomId) } },
     {
       $group: {
         _id: "$roomId",
@@ -28,35 +46,22 @@ export const getRoomReviewStats = async (roomId) => {
     },
   ]);
 
-  if (!stats.length) {
+  if (!result) {
     return { averageRating: 0, totalReviews: 0 };
   }
 
   return {
-    averageRating: parseFloat(stats[0].averageRating.toFixed(2)),
-    totalReviews: stats[0].totalReviews,
+    averageRating: parseFloat(result.averageRating.toFixed(2)),
+    totalReviews: result.totalReviews,
   };
 };
 
-export const updateReviewById = async (reviewId, updateData) => {
-  return await Review.findByIdAndUpdate(reviewId, updateData, {
-    new: true,
-    runValidators: true,
-  });
-};
-
-export const deleteReviewById = async (reviewId) => {
-  return await Review.findByIdAndDelete(reviewId);
-};
-
-export const updateRoomReviewStats = async (roomId, stats) => {
-  return await Room.findByIdAndUpdate(
+export const syncRoomStats = (roomId, stats) =>
+  Room.findByIdAndUpdate(
     roomId,
     {
       averageRating: stats.averageRating,
       totalReviews: stats.totalReviews,
-      updatedAt: new Date(),
     },
     { new: true }
   );
-};
