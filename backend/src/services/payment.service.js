@@ -1,4 +1,8 @@
-import crypto from "crypto";
+{
+  "razorpay_order_id": "order_T4asRMcXKLRFrA",
+  "razorpay_payment_id": "6a38e17586251c5637f9cb95",
+  "razorpay_signature": "a72bb06c4e2ed6b7f3c2a1f8e9d0b5c6a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d"
+}import crypto from "crypto";
 import mongoose from "mongoose";
 import razorpay from "../config/razorpay.js";
 import * as bookingRepo from "../repositories/booking.repository.js";

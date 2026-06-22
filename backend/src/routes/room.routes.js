@@ -1,7 +1,7 @@
 import express from "express";
 import * as roomController from "../controllers/room.controller.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
-import memoryUpload from "../config/multer.js";
+import { memoryUpload } from "../config/multer.js";
 
 const router = express.Router();
 
