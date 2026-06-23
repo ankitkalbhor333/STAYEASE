@@ -1,5 +1,0 @@
-/* App-level styles — kept minimal, design system lives in index.css */
-
-.spin-icon {
-  animation: spin 1s linear infinite;
-}
