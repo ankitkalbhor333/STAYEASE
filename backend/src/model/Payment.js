@@ -18,6 +18,7 @@ const paymentSchema = new mongoose.Schema(
     razorpayOrderId: {
       type: String,
       sparse: true,
+      unique: true,
     },
 
     razorpayPaymentId: {
@@ -52,7 +53,7 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-paymentSchema.index({ razorpayOrderId: 1 }, { unique: true, sparse: true });
+// Use field-level index declaration (unique + sparse) to avoid duplicate index warnings
 
 const Payment = mongoose.model("Payment", paymentSchema);
 

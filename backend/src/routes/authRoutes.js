@@ -7,7 +7,8 @@ import {
   resetPasswordPage,
   resetPassword,
   logout,
-  testEmail
+  testEmail,
+  resendVerification
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import {
@@ -45,5 +46,8 @@ router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
 
 // GET /api/auth/test-email - Test email sending (development only)
 router.get("/test-email", testEmail);
+
+// POST /api/auth/resend-verification - Resend verification email
+router.post("/resend-verification", resendVerification);
 
 export default router;
