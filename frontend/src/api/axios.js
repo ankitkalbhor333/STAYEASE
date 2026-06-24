@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-﻿import axios from "axios";
+import axios from "axios";
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api",
@@ -18,13 +17,3 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
-=======
-import axios from "axios";  
-
-const api=axios.create({
-  baseURL: "http://localhost:8000/api",
-})
-console.log("API base URL:", api);
-
-export default api;
->>>>>>> 01bb6bd (frontend)
