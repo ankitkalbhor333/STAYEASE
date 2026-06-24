@@ -134,7 +134,32 @@ export const verifyEmail = async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
 
-    res.json({ msg: "Email verified successfully! You can now login." });
+    // Create JWT and return login payload so user is logged in automatically
+    const expiresIn = getJwtExpiresIn();
+    const jwtToken = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn }
+    );
+
+    // If request comes from a browser (clicking link), redirect to frontend
+    const frontendBase = process.env.FRONTEND_URL || `${req.protocol}://${req.get("host")}`;
+    const redirectPath = `/auth/verify-success`;
+    const redirectUrl = `${frontendBase.replace(/\/$/, "")}${redirectPath}?token=${encodeURIComponent(jwtToken)}`;
+
+    const accept = req.headers.accept || "";
+    if (accept.includes("text/html")) {
+      return res.redirect(302, redirectUrl);
+    }
+
+    // Otherwise return JSON (API clients)
+    res.json({
+      msg: "Email verified successfully! Logged in automatically.",
+      token: jwtToken,
+      expiresAt: getTokenExpiresAt(jwtToken),
+      expiresIn,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
   } catch (err) {
     console.error("Verify email error:", err);
     res.status(500).json({ msg: "Server error", error: err.message });
@@ -540,13 +565,14 @@ export const resetPasswordPage = async (req, res) => {
  * POST /api/auth/reset-password/:token
  * Body: { newPassword }
  */
+
 export const resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { token: resetToken } = req.params;
     const { newPassword } = req.body;
 
     // Validation
-    if (!token) {
+    if (!resetToken) {
       return res.status(400).json({ msg: "Reset token required" });
     }
 
@@ -556,6 +582,7 @@ export const resetPassword = async (req, res) => {
 
     // Validate password strength
     const passwordValidation = validatePassword(newPassword);
+
     if (!passwordValidation.isValid) {
       return res.status(400).json({
         msg: "Password does not meet requirements",
@@ -564,7 +591,8 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Check for common passwords
+
+    // Common password check
     if (isCommonPassword(newPassword)) {
       return res.status(400).json({
         msg: "Password is too common. Please choose a stronger password.",
@@ -572,34 +600,93 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Find user with reset token
-    const user = await User.findOne({ resetToken: token });
+
+    // Find user
+    const user = await User.findOne({
+      resetToken: resetToken
+    });
+
+
     if (!user) {
-      return res.status(400).json({ msg: "Invalid reset token" });
+      return res.status(400).json({
+        msg: "Invalid reset token"
+      });
     }
 
-    // Check if token expired
+
+    // Token expiry check
     if (new Date() > user.resetTokenExpiry) {
+
       user.resetToken = undefined;
       user.resetTokenExpiry = undefined;
+
       await user.save();
-      return res.status(400).json({ msg: "Reset token has expired" });
+
+      return res.status(400).json({
+        msg: "Reset token has expired"
+      });
     }
 
-    // Update password
+
+    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+
     user.password = hashedPassword;
+
+    // remove reset token after use
     user.resetToken = undefined;
     user.resetTokenExpiry = undefined;
+
+
     await user.save();
 
-    res.json({ msg: "Password reset successful! You can now login." });
+
+
+    // Auto login after reset
+    const expiresIn = getJwtExpiresIn();
+
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn
+      }
+    );
+
+
+    res.json({
+      msg: "Password reset successful! You are now logged in.",
+
+      token: accessToken,
+
+      expiresAt: getTokenExpiresAt(accessToken),
+
+      expiresIn,
+
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+
 
   } catch (err) {
+
     console.error("Reset password error:", err);
-    res.status(500).json({ msg: "Server error", error: err.message });
+
+    res.status(500).json({
+      msg: "Server error",
+      error: err.message
+    });
+
   }
 };
+
 
 /**
  * TEST EMAIL - Send test email to verify email service is working
@@ -693,6 +780,66 @@ export const logout = async (req, res) => {
 
   } catch (err) {
     console.error("Logout error:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
+/**
+ * RESEND VERIFICATION - Resend email verification link
+ * POST /api/auth/resend-verification
+ * Body: { email }
+ */
+export const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ msg: "Email required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ msg: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ msg: "Email already verified. Please login." });
+    }
+
+    let verificationToken = user.verificationToken;
+    if (!verificationToken) {
+      verificationToken = crypto.randomBytes(32).toString("hex");
+      user.verificationToken = verificationToken;
+      await user.save();
+    }
+
+    // Build verification link
+    const protocol = req.protocol || "http";
+    const host = req.get("host");
+    const baseUrl = `${protocol}://${host}/api/auth`;
+    const verifyLink = `${baseUrl}/verify/${verificationToken}`;
+
+    await sendEmail(
+      email,
+      "Verify Your Email",
+      `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; background: #ffffff;">
+          <h2 style="color: #B40032; font-size: 24px; margin-bottom: 20px; font-weight: 700;">Welcome to LUXE</h2>
+          <p style="font-size: 16px; color: #333; line-height: 1.6;">Click the link below to verify your email and activate your account:</p>
+          <div style="margin: 30px 0;">
+            <a href="${verifyLink}" style="padding: 14px 28px; background: #B40032; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px; box-shadow: 0 4px 6px rgba(180,0,50,0.2);">
+              Verify Email Address
+            </a>
+          </div>
+          <p style="font-size: 14px; color: #666;">This link will expire in 24 hours. If you did not sign up for an account, please ignore this email.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #999;">LUXE Inc. &copy; 2026. All rights reserved.</p>
+        </div>
+      `
+    );
+
+    res.json({ msg: "Verification email resent successfully!" });
+  } catch (err) {
+    console.error("Resend verification error:", err);
     res.status(500).json({ msg: "Server error", error: err.message });
   }
 };
