@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import StepProgress from "../../components/owner/StepProgress";
 import RoomBasicForm from "../../components/owner/RoomBasicForm";
@@ -28,6 +28,7 @@ export default function RoomDraft() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
     const loadRoom = async () => {
@@ -35,7 +36,11 @@ export default function RoomDraft() {
         setLoading(true);
         const res = await getRoomByIdAPI(id);
         setRoom(res.data.data);
-        setStep(res.data.data.currentStep || "basic");
+        // Only use backend step on initial load; after that, local step is authoritative
+        if (!initialLoadDone.current) {
+          initialLoadDone.current = true;
+          setStep(res.data.data.currentStep || "basic");
+        }
       } catch (err) {
         setError(err?.response?.data?.message || err.message);
       } finally {
