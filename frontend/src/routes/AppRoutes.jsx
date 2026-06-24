@@ -5,6 +5,8 @@ import {
 } from "react-router-dom";
 
 import Home from "../pages/rooms/Home";
+import SearchRooms from "../pages/rooms/SearchRooms";
+import RoomDetails from "../pages/rooms/RoomDetails";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgetPassword";
@@ -28,6 +30,8 @@ export default function AppRoutes() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/auth/verify-success" element={<VerifySuccess />} />
+        <Route path="/rooms/search" element={<SearchRooms />} />
+        <Route path="/rooms/:id" element={<RoomDetails />} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
       </Routes>
