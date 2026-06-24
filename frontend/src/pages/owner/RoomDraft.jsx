@@ -36,7 +36,6 @@ export default function RoomDraft() {
         setLoading(true);
         const res = await getRoomByIdAPI(id);
         setRoom(res.data.data);
-        // Only use backend step on initial load; after that, local step is authoritative
         if (!initialLoadDone.current) {
           initialLoadDone.current = true;
           setStep(res.data.data.currentStep || "basic");
@@ -57,15 +56,23 @@ export default function RoomDraft() {
     return steps[index + 1];
   };
 
+  const handleNext = () => {
+    setStep((currentStep) => {
+      const next = nextStep(currentStep);
+      // If it's the last step, no further advancement — just refresh data
+      if (next === currentStep) {
+        setRefreshKey((c) => c + 1);
+      }
+      return next;
+    });
+  };
+
   const renderStepForm = () => {
     if (!room) return null;
 
     const commonProps = {
       roomId: id,
-      next: () => {
-        setStep((currentStep) => nextStep(currentStep));
-        setRefreshKey((current) => current + 1);
-      },
+      next: handleNext,
       room,
     };
 
