@@ -4,6 +4,7 @@ import { getRoomDetailsAPI } from "../../api/room.api";
 import ImageGallery from "../../components/room/ImageGallery";
 import Amenities from "../../components/room/Amenities";
 import PriceBox from "../../components/room/PriceBox";
+import MapPicker from "../../components/common/MapPicker";
 import useAuth from "../../hooks/useAuth";
 
 export default function RoomDetails() {
@@ -221,6 +222,24 @@ export default function RoomDetails() {
 
             {/* Amenities */}
             <Amenities amenities={room.amenities} />
+
+            {/* Location Map */}
+            {room.location?.coordinates?.length === 2 && (
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">Location</h2>
+                <MapPicker
+                  latitude={room.location.coordinates[1]}
+                  longitude={room.location.coordinates[0]}
+                  readOnly={true}
+                  height="300px"
+                />
+                {(room.fullAddress || room.city) && (
+                  <p className="text-sm text-slate-600 mt-3">
+                    📍 {room.fullAddress || `${room.city}, ${room.state}, ${room.country}`}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Owner Info */}
             <div className="bg-white rounded-lg p-6 border border-slate-200">
