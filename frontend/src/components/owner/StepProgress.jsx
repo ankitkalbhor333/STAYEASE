@@ -32,9 +32,20 @@ export default function StepProgress({ roomId, refreshKey }) {
           <p className="text-sm font-semibold text-slate-700">Draft progress</p>
           <p className="text-xs text-slate-500">Complete all steps to publish</p>
         </div>
-        <div className="text-lg font-bold text-slate-900">{progress}%</div>
+        <div
+          className="text-lg font-bold"
+          style={{
+            background: "linear-gradient(135deg, #B40032, #FF4D6D)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          {progress}%
+        </div>
       </div>
-      <progress value={progress} max="100" className="w-full h-3 rounded-full overflow-hidden bg-slate-100" />
+      <div className="progress-bar-track">
+        <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
+      </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );

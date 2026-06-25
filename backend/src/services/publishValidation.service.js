@@ -58,12 +58,13 @@ export const validateLocation = (room) => {
     errors.push("Phone number is missing");
   }
 
-  if (
-    !room.location?.coordinates ||
-    room.location.coordinates.length !== 2
-  ) {
-    errors.push("Location coordinates are missing");
-  }
+  // Coordinates are optional — don't block publishing if missing
+  // if (
+  //   !room.location?.coordinates ||
+  //   room.location.coordinates.length !== 2
+  // ) {
+  //   errors.push("Location coordinates are missing");
+  // }
 
   return errors;
 };

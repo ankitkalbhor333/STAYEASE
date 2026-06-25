@@ -1,15 +1,30 @@
 import { useState } from "react";
 import { updateRoomStepAPI } from "../../api/owner.api";
 
-export default function RoomBasicForm({ roomId, next, room }) {
+export default function RoomBasicForm({ roomId, next, back, room }) {
   const [title, setTitle] = useState(room?.title || "");
   const [description, setDescription] = useState(room?.description || "");
   const [propertyType, setPropertyType] = useState(room?.propertyType || "Apartment");
   const [roomType, setRoomType] = useState(room?.roomType || "Entire Place");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const validate = () => {
+    const errors = {};
+    if (!title.trim() || title.trim().length < 3) {
+      errors.title = "Title is required (min 3 characters)";
+    }
+    if (!description.trim() || description.trim().length < 10) {
+      errors.description = "Description is required (min 10 characters)";
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const save = async () => {
+    if (!validate()) return;
+
     setSaving(true);
     setError("");
     try {
@@ -29,24 +44,35 @@ export default function RoomBasicForm({ roomId, next, room }) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <label className="block text-sm font-semibold text-slate-700">Title</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Room title"
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-[#B40032] outline-none"
-        />
+      <div className="form-section-header">
+        <span className="icon">📝</span>
+        <h3>Basic Information</h3>
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-semibold text-slate-700">Description</label>
+      <div className="space-y-1">
+        <label className="block text-sm font-semibold text-slate-700">
+          Title <span className="text-red-400">*</span>
+        </label>
+        <input
+          value={title}
+          onChange={(e) => { setTitle(e.target.value); setFieldErrors((p) => ({...p, title: ""})); }}
+          placeholder="e.g. Cozy Studio in Downtown"
+          className={`draft-input w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ${fieldErrors.title ? "input-error" : ""}`}
+        />
+        {fieldErrors.title && <p className="field-error-text">⚠ {fieldErrors.title}</p>}
+      </div>
+
+      <div className="space-y-1">
+        <label className="block text-sm font-semibold text-slate-700">
+          Description <span className="text-red-400">*</span>
+        </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe your space"
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 min-h-[140px] resize-none focus:border-[#B40032] outline-none"
+          onChange={(e) => { setDescription(e.target.value); setFieldErrors((p) => ({...p, description: ""})); }}
+          placeholder="Describe your space — what makes it special?"
+          className={`draft-input w-full rounded-2xl border border-slate-200 px-4 py-3 min-h-[140px] resize-none outline-none ${fieldErrors.description ? "input-error" : ""}`}
         />
+        {fieldErrors.description && <p className="field-error-text">⚠ {fieldErrors.description}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,7 +81,7 @@ export default function RoomBasicForm({ roomId, next, room }) {
           <select
             value={propertyType}
             onChange={(e) => setPropertyType(e.target.value)}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-[#B40032] outline-none"
+            className="draft-select mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
           >
             <option>Apartment</option>
             <option>House</option>
@@ -72,7 +98,7 @@ export default function RoomBasicForm({ roomId, next, room }) {
           <select
             value={roomType}
             onChange={(e) => setRoomType(e.target.value)}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-[#B40032] outline-none"
+            className="draft-select mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
           >
             <option>Entire Place</option>
             <option>Private Room</option>
@@ -81,15 +107,22 @@ export default function RoomBasicForm({ roomId, next, room }) {
         </label>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 fade-in-up">
+          {error}
+        </div>
+      )}
 
-      <button
-        onClick={save}
-        disabled={saving}
-        className="rounded-2xl bg-[#B40032] px-6 py-3 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60"
-      >
-        {saving ? "Saving..." : "Continue"}
-      </button>
+      <div className="form-btn-group">
+        {back && (
+          <button type="button" onClick={back} className="btn-back">
+            ← Back
+          </button>
+        )}
+        <button onClick={save} disabled={saving} className="btn-primary">
+          {saving ? "Saving..." : "Continue →"}
+        </button>
+      </div>
     </div>
   );
 }
