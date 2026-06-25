@@ -146,7 +146,7 @@ export const publishRoom = async (roomId) => {
     status: "active",
   });
 
-  // Update user role to OWNER if they aren't already
+  // Update user role to OWNER if they aren't already   this code reposible fro role change
   const ownerId = room.ownerId?._id || room.ownerId;
   if (ownerId) {
     await User.findByIdAndUpdate(ownerId, { role: "OWNER" });
