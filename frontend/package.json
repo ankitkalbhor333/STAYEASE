@@ -12,16 +12,12 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",
     "axios": "^1.18.1",
-    "cors": "^2.8.6",
+    "leaflet": "^1.9.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-hook-form": "^7.80.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.18.0",
-    "tailwindcss": "^4.3.1",
-    "zod": "^4.4.3",
-    "lucide-react": "^1.21.0",
-    "react-icons": "^4.11.0"
-    
+    "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
