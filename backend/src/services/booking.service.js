@@ -150,3 +150,9 @@ export const cancelBooking = async (bookingId, userId) => {
 
   return updated;
 };
+
+export const getOwnerBookings = async (userId) => {
+  const rooms = await Room.find({ ownerId: userId });
+  const roomIds = rooms.map((r) => r._id);
+  return await bookingRepo.findByOwnerRooms(roomIds);
+};
