@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post("/", verifyToken, bookingController.createBooking);
 router.get("/my-bookings", verifyToken, bookingController.getMyBookings);
+router.get("/owner/bookings", verifyToken, bookingController.getOwnerBookings);
 router.get("/:id", verifyToken, bookingController.getBookingById);
 router.patch("/cancel/:id", verifyToken, bookingController.cancelBooking);
 

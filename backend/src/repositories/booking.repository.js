@@ -10,6 +10,12 @@ export const findById = (id) =>
 export const findByUser = (userId) =>
   Booking.find({ userId }).populate("roomId").sort({ createdAt: -1 });
 
+export const findByOwnerRooms = (roomIds) =>
+  Booking.find({ roomId: { $in: roomIds } })
+    .populate("roomId")
+    .populate("userId", "name email")
+    .sort({ createdAt: -1 });
+
 export const updateById = (id, data) =>
   Booking.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 

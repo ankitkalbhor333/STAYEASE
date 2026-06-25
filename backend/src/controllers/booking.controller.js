@@ -44,3 +44,11 @@ export const cancelBooking = asyncHandler(async (req, res) => {
     data: booking,
   });
 });
+
+export const getOwnerBookings = asyncHandler(async (req, res) => {
+  const bookings = await bookingService.getOwnerBookings(req.user.id);
+  sendSuccess(res, {
+    message: "Owner bookings fetched successfully",
+    data: bookings,
+  });
+});

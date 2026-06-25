@@ -71,7 +71,8 @@ export const register = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      verificationToken
+      verificationToken,
+      isVerified: true
     });
 
     // Build verification link
