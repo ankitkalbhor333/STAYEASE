@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { getProfileAPI } from "../api/user.api";
 
 export const AuthContext = createContext();
@@ -29,13 +29,23 @@ export default function AuthProvider({ children }) {
     initializeAuth();
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await getProfileAPI();
+      setUser(res.data.data);
+    } catch (error) {
+      // If refresh fails (e.g. token expired), don't clear user
+      // because this might be called mid-session
+    }
+  }, []);
+
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

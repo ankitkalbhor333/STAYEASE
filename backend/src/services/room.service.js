@@ -1,6 +1,7 @@
 import * as RoomModule from "../model/Room.js";
 import * as roomRepository from "../repositories/room.repository.js";
 import * as publishValidation from "./publishValidation.service.js";
+import User from "../model/User.js";
 import {
   uploadImagesToCloudinary,
   deleteImagesFromCloudinary,
@@ -144,6 +145,12 @@ export const publishRoom = async (roomId) => {
   const publishedRoom = await roomRepository.publishRoom(roomId, {
     status: "active",
   });
+
+  // Update user role to OWNER if they aren't already
+  const ownerId = room.ownerId?._id || room.ownerId;
+  if (ownerId) {
+    await User.findByIdAndUpdate(ownerId, { role: "OWNER" });
+  }
 
   return publishedRoom;
 };

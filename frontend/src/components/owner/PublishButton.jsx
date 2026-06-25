@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { publishRoomAPI } from "../../api/owner.api";
+import useAuth from "../../hooks/useAuth";
 
 export default function PublishButton({ roomId }) {
+  const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -12,7 +16,11 @@ export default function PublishButton({ roomId }) {
     setSuccess("");
     try {
       await publishRoomAPI(roomId);
+      // Refresh user data so role is updated to OWNER
+      await refreshUser();
       setSuccess("Room published successfully.");
+      // Redirect to owner dashboard after brief delay
+      setTimeout(() => navigate("/owner"), 1200);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Unable to publish room.");
     } finally {

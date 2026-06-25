@@ -288,7 +288,7 @@ export const publishRoom = async (req, res, next) => {
           validation: error.validation,
         });
       }
-      throw error;
+      next(error);
     }
   } catch (error) {
     next(error);
@@ -471,4 +471,3 @@ export const searchRooms = async (
     next(error);
   }
 };
-
