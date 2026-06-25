@@ -35,7 +35,7 @@ export default function Navbar({ user, onOpenAuth, onLogout }) {
     <header className="border-b border-slate-100 py-4 px-6 md:px-12 bg-white sticky top-0 z-40">
       <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
         <Link to="/" className="text-[#B40032] font-black text-3xl tracking-wider select-none shrink-0">
-          LUXE
+          StayEase
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -43,20 +43,33 @@ export default function Navbar({ user, onOpenAuth, onLogout }) {
             Stays
           </button>
           <button className="text-slate-500 hover:text-slate-800 transition-colors font-medium text-sm tracking-wide">
-            Experiences
+            About 
           </button>
           <button className="text-slate-500 hover:text-slate-800 transition-colors font-medium text-sm tracking-wide">
-            Online Experiences
+            Contact-us
+          </button>
+          <button className="text-slate-500 hover:text-slate-800 transition-colors font-medium text-sm tracking-wide">
+            Help Center
           </button>
         </nav>
 
         <div className="flex items-center gap-4 relative">
-          <button
-            onClick={() => navigate("/host")}
-            className="text-sm font-semibold text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-full transition-all duration-200 hidden lg:inline-block"
-          >
-            Become a host
-          </button>
+          {user?.role === "OWNER" && (
+            <button
+              onClick={() => navigate("/owner")}
+              className="text-sm font-semibold text-white bg-[#B40032] hover:bg-red-700 px-5 py-2.5 rounded-full transition-all duration-200 hidden lg:inline-block shadow-sm"
+            >
+              Owner Dashboard
+            </button>
+          )}
+          {user?.role !== "OWNER" && (
+            <button
+              onClick={() => navigate("/host")}
+              className="text-sm font-semibold text-white bg-[#B40032] hover:bg-red-700 px-5 py-2.5 rounded-full transition-all duration-200 hidden lg:inline-block shadow-sm"
+            >
+              Become a host
+            </button>
+          )}
 
           <button className="p-2.5 rounded-full hover:bg-slate-50 text-slate-600 transition-all duration-200 hidden sm:inline-block">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -107,6 +120,40 @@ export default function Navbar({ user, onOpenAuth, onLogout }) {
                     >
                       Edit Profile
                     </Link>
+                    {user?.role === "OWNER" && (
+                      <>
+                        <hr className="border-slate-100 my-2" />
+                        <Link
+                          to="/owner"
+                          className="block px-5 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-semibold"
+                        >
+                          Owner Dashboard
+                        </Link>
+                        <Link
+                          to="/owner/create"
+                          className="block px-5 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                        >
+                          List a New Room
+                        </Link>
+                        <Link
+                          to="/owner/rooms"
+                          className="block px-5 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                        >
+                          My Listings
+                        </Link>
+                      </>
+                    )}
+                    {user?.role !== "OWNER" && (
+                      <>
+                        <hr className="border-slate-100 my-2" />
+                        <Link
+                          to="/host"
+                          className="block px-5 py-2.5 text-sm text-[#B40032] hover:bg-red-50 font-semibold"
+                        >
+                          ✨ Become a host
+                        </Link>
+                      </>
+                    )}
                     <hr className="border-slate-100 my-2" />
                     <button
                       onClick={() => {
@@ -133,12 +180,18 @@ export default function Navbar({ user, onOpenAuth, onLogout }) {
                       Log In
                     </button>
                     <hr className="border-slate-100 my-2" />
-                    <span className="block px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-50 cursor-pointer font-medium">
-                      Become a host
-                    </span>
-                    <span className="block px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-50 cursor-pointer font-medium">
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        navigate("/host");
+                      }}
+                      className="w-full text-left block px-5 py-2.5 text-sm text-[#B40032] hover:bg-red-50 font-semibold"
+                    >
+                      ✨ Become a host
+                    </button>
+                    <button className="block w-full text-left px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-50 cursor-pointer font-medium">
                       Help Center
-                    </span>
+                    </button>
                   </>
                 )}
               </div>

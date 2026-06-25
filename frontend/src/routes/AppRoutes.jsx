@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from "react-router-dom";
 
 import Home from "../pages/rooms/Home";
@@ -17,6 +18,10 @@ import VerifyEmailNotice from "../pages/auth/VerifyEmailNotice";
 import Profile from "../pages/user/Profile";
 import EditProfile from "../pages/user/EditProfile";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
+import OwnerDashboard from "../pages/owner/OwnerDashboard";
+import CreateRoom from "../pages/owner/CreateRoom";
+import RoomDraft from "../pages/owner/RoomDraft";
+import MyRooms from "../pages/owner/MyRooms";
 
 export default function AppRoutes() {
   return (
@@ -30,11 +35,48 @@ export default function AppRoutes() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/auth/verify-success" element={<VerifySuccess />} />
+
         <Route path="/rooms/search" element={<SearchRooms />} />
         <Route path="/rooms/:id" element={<RoomDetails />} />
+
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-      </Routes>
+
+        <Route path="/host" element={<ProtectedRoute><Navigate to="/owner/create" replace /></ProtectedRoute>} />
+
+        <Route
+          path="/owner"
+          element={
+            <ProtectedRoute>
+              <OwnerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/owner/create"
+          element={
+            <ProtectedRoute>
+              <CreateRoom />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/owner/room/:id"
+          element={
+            <ProtectedRoute>
+              <RoomDraft />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/owner/rooms"
+          element={
+            <ProtectedRoute>
+              <MyRooms />
+            </ProtectedRoute>
+          }
+        />
+</Routes>
     </BrowserRouter>
   );
 }
