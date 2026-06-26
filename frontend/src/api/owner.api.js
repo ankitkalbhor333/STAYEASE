@@ -48,5 +48,5 @@ export const deleteRoomAPI = (id) => {
 };
 
 export const getOwnerBookingsAPI = () => {
-  return api.get("/v1/bookings/owner/bookings");
+  return api.get("/bookings/owner/bookings");
 };
