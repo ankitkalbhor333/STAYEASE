@@ -75,6 +75,8 @@ const bookingSchema = new mongoose.Schema(
 bookingSchema.index({
   roomId: 1,
   bookingStatus: 1,
+  checkIn: 1,
+  checkOut: 1,
 });
 
 const Booking = mongoose.model(

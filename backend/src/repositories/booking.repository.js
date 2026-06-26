@@ -19,10 +19,10 @@ export const findByOwnerRooms = (roomIds) =>
 export const updateById = (id, data) =>
   Booking.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 
-export const findOverlappingBooking = (roomId, startDate, endDate) => {
+export const findOverlappingBooking = (roomId, startDate, endDate, session = null) => {
   const now = new Date();
 
-  return Booking.findOne({
+  const query = Booking.findOne({
     roomId,
     $or: [
       { bookingStatus: { $in: blockingStatuses } },
@@ -34,6 +34,26 @@ export const findOverlappingBooking = (roomId, startDate, endDate) => {
     checkIn: { $lt: endDate },
     checkOut: { $gt: startDate },
   });
+
+  if (session) {
+    query.session(session);
+  }
+
+  return query;
+};
+
+export const findBlockedDatesForRoom = async (roomId) => {
+  const now = new Date();
+  return Booking.find({
+    roomId,
+    $or: [
+      { bookingStatus: "CONFIRMED" },
+      {
+        bookingStatus: "PENDING",
+        paymentExpiresAt: { $gt: now },
+      },
+    ],
+  }).select("checkIn checkOut");
 };
 
 export const expireStalePendingBookings = async () => {

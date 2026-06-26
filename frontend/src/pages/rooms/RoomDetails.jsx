@@ -278,6 +278,7 @@ export default function RoomDetails() {
               price={room.price}
               roomId={room._id}
               onBooking={handleBooking}
+              status={room.status}
             />
           </div>
         </div>

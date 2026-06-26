@@ -52,3 +52,27 @@ export const getOwnerBookings = asyncHandler(async (req, res) => {
     data: bookings,
   });
 });
+
+export const checkAvailability = asyncHandler(async (req, res) => {
+  const { roomId, checkIn, checkOut, guests } = req.body;
+  const result = await bookingService.checkRoomAvailability({
+    roomId,
+    checkIn,
+    checkOut,
+    guests,
+  });
+  
+  res.status(200).json({
+    success: true,
+    message: result.available ? "Dates are available for booking" : result.reason,
+    data: result,
+  });
+});
+
+export const getRoomAvailabilityCalendar = asyncHandler(async (req, res) => {
+  const result = await bookingService.getRoomAvailabilityCalendar(req.params.id);
+  sendSuccess(res, {
+    message: "Room availability calendar fetched successfully",
+    data: result,
+  });
+});
