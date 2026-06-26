@@ -8,10 +8,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // CORS - allow frontend origin and credentials (cookies)
-const FRONTEND_ORIGIN = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_ORIGINS = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: FRONTEND_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || FRONTEND_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );

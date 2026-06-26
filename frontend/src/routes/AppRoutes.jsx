@@ -22,6 +22,9 @@ import OwnerDashboard from "../pages/owner/OwnerDashboard";
 import CreateRoom from "../pages/owner/CreateRoom";
 import RoomDraft from "../pages/owner/RoomDraft";
 import MyRooms from "../pages/owner/MyRooms";
+import BookingCheckout from "../pages/booking/BookingCheckout";
+import MyBookings from "../pages/booking/MyBookings";
+import BookingDetails from "../pages/booking/BookingDetails";
 
 export default function AppRoutes() {
   return (
@@ -38,6 +41,30 @@ export default function AppRoutes() {
 
         <Route path="/rooms/search" element={<SearchRooms />} />
         <Route path="/rooms/:id" element={<RoomDetails />} />
+        <Route
+          path="/rooms/:id/book"
+          element={
+            <ProtectedRoute>
+              <BookingCheckout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute>
+              <MyBookings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings/:id"
+          element={
+            <ProtectedRoute>
+              <BookingDetails />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
