@@ -2,13 +2,14 @@ import express from "express";
 import * as roomController from "../controllers/room.controller.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { memoryUpload } from "../config/multer.js";
+import { roomCreationLimiter } from "../middleware/rateLimitMiddleware.js";
 
 const router = express.Router();
 
 /**
  * DRAFT ROOM CREATION WORKFLOW
  */
-router.post("/", verifyToken, roomController.createDraftRoom);
+router.post("/", verifyToken, roomCreationLimiter, roomController.createDraftRoom);
 router.get("/resume-draft", verifyToken, roomController.getLatestDraftRoom);
 router.get("/my-draft-rooms", verifyToken, roomController.getDraftRooms);
 router.get("/stats", verifyToken, roomController.getRoomStats);

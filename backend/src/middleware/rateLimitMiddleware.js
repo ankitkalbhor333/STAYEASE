@@ -6,7 +6,7 @@
  */
 
 // 🧪 TESTING MODE - Set to true to disable all rate limiting
-const DISABLE_RATE_LIMIT = true;
+const DISABLE_RATE_LIMIT = false;
 
 // In-memory store for request tracking: { ip: [{ timestamp, count }] }
 const requestTracker = new Map();
@@ -78,6 +78,12 @@ export const registerLimiter = rateLimiter(1000, 60 * 60 * 1000);
  * 3 attempts per 1 hour
  */
 export const passwordResetLimiter = rateLimiter(3, 60 * 60 * 1000);
+
+/**
+ * Room Creation Rate Limiter - Limits room creation attempts
+ * 5 creations per 1 hour
+ */
+export const roomCreationLimiter = rateLimiter(5, 60 * 60 * 1000);
 
 /**
  * Cleanup expired entries periodically (optional - memory management)

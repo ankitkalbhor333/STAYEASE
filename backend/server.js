@@ -7,6 +7,7 @@ import roomRoutes from "./src/routes/room.routes.js";
 import bookingRoutes from "./src/routes/booking.routes.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
 import { startBlacklistCleanup } from "./src/middleware/tokenBlacklist.js";
+import { startDraftCleanupJob } from "./src/jobs/draftCleanup.js";
 import { errorHandler } from "./src/middleware/error.middleware.js";
 
 dotenv.config();
@@ -15,6 +16,9 @@ await connectDB();
 
 // Start token blacklist cleanup (runs every 1 hour)
 startBlacklistCleanup();
+
+// Start draft room cleanup (runs every 1 hour)
+startDraftCleanupJob();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

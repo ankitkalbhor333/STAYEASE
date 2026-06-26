@@ -41,7 +41,6 @@ export default function Home() {
   const openAuth = (mode) => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
-    setIsProfileDropdownOpen(false);
   };
 
   const handleSearch = (e) => {
