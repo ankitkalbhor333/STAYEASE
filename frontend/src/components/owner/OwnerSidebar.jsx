@@ -4,6 +4,7 @@ export default function OwnerSidebar({ activeTab, setActiveTab }) {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
     { id: "active-listings", label: "Active Listings", icon: "🟢" },
+    { id: "inactive-listings", label: "Inactive Listings", icon: "🔴" },
     { id: "draft-rooms", label: "Draft Rooms", icon: "📝" },
     { id: "pending-rooms", label: "Pending Rooms", icon: "⏳" },
     { id: "create-listing", label: "Create Listing", icon: "➕" },

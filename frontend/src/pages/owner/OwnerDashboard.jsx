@@ -49,7 +49,7 @@ export default function OwnerDashboard() {
       ]);
 
       setRooms(roomsRes.data?.data || []);
-      setDrafts(draftsRes.data?.data || []);
+      setDrafts(draftsRes.data?.data?.rooms || draftsRes.data?.data || []);
       setBookings(bookingsRes.data?.data || []);
       setStats(statsRes.data?.data || null);
     } catch (err) {
@@ -123,6 +123,8 @@ export default function OwnerDashboard() {
   // Calculations for dashboard
   const activeRoomsList = rooms.filter((r) => r.status === "active");
   const inactiveRoomsList = rooms.filter((r) => r.status === "inactive");
+  const draftRoomsList = drafts.filter((r) => (r.completedSteps?.length || 0) < 6);
+  const pendingRoomsList = drafts.filter((r) => (r.completedSteps?.length || 0) >= 6);
   
   const totalBookingsCount = bookings.length;
   const totalEarnings = bookings
@@ -130,14 +132,6 @@ export default function OwnerDashboard() {
     .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 
   const averageRating = rooms.reduce((sum, r) => sum + (r.averageRating || 0), 0) / (rooms.length || 1);
-
-  // Auto trigger listing initialization when tab is clicked
-  useEffect(() => {
-    if (activeTab === "create-listing") {
-      handleCreateListing();
-      setActiveTab("dashboard");
-    }
-  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -175,10 +169,11 @@ export default function OwnerDashboard() {
                   </div>
 
                   {/* Summary Stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatsCard label="Total Listings" value={rooms.length + drafts.length} icon="🏠" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <StatsCard label="Total Listings" value={activeRoomsList.length + draftRoomsList.length + pendingRoomsList.length} icon="🏠" />
                     <StatsCard label="Active Rooms" value={activeRoomsList.length} icon="🟢" />
-                    <StatsCard label="Draft Rooms" value={drafts.length} icon="📝" />
+                    <StatsCard label="Pending Rooms" value={pendingRoomsList.length} icon="⏳" />
+                    <StatsCard label="Draft Rooms" value={draftRoomsList.length} icon="📝" />
                     <StatsCard label="Total Earnings" value={`₹${totalEarnings.toLocaleString()}`} icon="💰" />
                   </div>
 
@@ -259,11 +254,11 @@ export default function OwnerDashboard() {
                     <p className="text-sm text-slate-500">Manage all your published property offerings.</p>
                   </div>
 
-                  {rooms.length === 0 ? (
+                  {activeRoomsList.length === 0 ? (
                     <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center">
-                      <p className="text-slate-400 mb-4">No published listings yet.</p>
+                      <p className="text-slate-400 mb-4">No active listings yet.</p>
                       <button
-                        onClick={handleCreateListing}
+                        onClick={() => setActiveTab("create-listing")}
                         className="bg-[#B40032] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-700"
                       >
                         Create Listing
@@ -271,7 +266,36 @@ export default function OwnerDashboard() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {rooms.map((room) => (
+                      {activeRoomsList.map((room) => (
+                        <RoomCard
+                          key={room._id}
+                          room={room}
+                          onView={handleViewRoom}
+                          onEdit={handleEditRoom}
+                          onDelete={handleDeleteRoom}
+                          onStatusUpdate={handleStatusUpdate}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ───────────────── VIEW: INACTIVE LISTINGS ───────────────── */}
+              {activeTab === "inactive-listings" && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">Your Inactive Listings</h2>
+                    <p className="text-sm text-slate-500">View and reactivate your unavailable property offerings.</p>
+                  </div>
+
+                  {inactiveRoomsList.length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
+                      🔴 No inactive listings found.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {inactiveRoomsList.map((room) => (
                         <RoomCard
                           key={room._id}
                           room={room}
@@ -294,13 +318,13 @@ export default function OwnerDashboard() {
                     <p className="text-sm text-slate-500">Continue building your listing profiles.</p>
                   </div>
 
-                  {drafts.length === 0 ? (
+                  {draftRoomsList.length === 0 ? (
                     <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
                       📝 No drafts found. Create a new listing above!
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {drafts.map((room) => {
+                      {draftRoomsList.map((room) => {
                         const completedSteps = room.completedSteps?.length || 0;
                         const percentage = Math.round((completedSteps / 7) * 100);
                         return (
@@ -356,13 +380,13 @@ export default function OwnerDashboard() {
                     </p>
                   </div>
 
-                  {drafts.length === 0 ? (
+                  {pendingRoomsList.length === 0 ? (
                     <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
                       ⏳ No pending rooms to publish.
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {drafts.map((room) => {
+                      {pendingRoomsList.map((room) => {
                         const isReady = room.completedSteps?.length >= 6;
                         return (
                           <div
@@ -402,6 +426,101 @@ export default function OwnerDashboard() {
                       })}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ───────────────── VIEW: CREATE LISTING INTERMEDIATE UI ───────────────── */}
+              {activeTab === "create-listing" && (
+                <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200 p-8 md:p-10 shadow-sm space-y-8 animate-fade-in">
+                  <div className="text-center space-y-3">
+                    <span className="text-4xl">🏡</span>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                      Publish Your Space on StayEase
+                    </h2>
+                    <p className="text-sm text-slate-500 max-w-md mx-auto">
+                      Become a host and start earning! Our simple 7-step process makes it easy to list your room or apartment.
+                    </p>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-6 space-y-6">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                      How it works:
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex gap-4 items-start">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-[#B40032] font-bold text-sm shrink-0">
+                          1
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">Basic Info & Location</h4>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Provide property name, details, address, and upload photos.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-start">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-[#B40032] font-bold text-sm shrink-0">
+                          2
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">Details & Amenities</h4>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Specify rooms, guest capacity, and amenities like WiFi, A/C, etc.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-start">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-[#B40032] font-bold text-sm shrink-0">
+                          3
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">Pricing & Availability</h4>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Set your daily/weekly price and availability dates.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-start">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-[#B40032] font-bold text-sm shrink-0">
+                          4
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">Publish and Earn</h4>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Once all steps are completed, publish your listing live.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-4 justify-end">
+                    <button
+                      onClick={() => setActiveTab("dashboard")}
+                      className="px-6 py-3 rounded-2xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition"
+                      disabled={actionLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateListing}
+                      className="px-8 py-3 rounded-2xl bg-[#B40032] text-white font-bold text-sm hover:bg-red-700 shadow-sm transition flex items-center justify-center gap-2"
+                      disabled={actionLoading}
+                    >
+                      {actionLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                          Initializing...
+                        </>
+                      ) : (
+                        "Start Listing Process 🚀"
+                      )}
+                    </button>
+                  </div>
                 </div>
               )}
 
