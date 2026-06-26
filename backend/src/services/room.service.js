@@ -142,9 +142,7 @@ export const publishRoom = async (roomId) => {
   }
 
   // Publish the room
-  const publishedRoom = await roomRepository.publishRoom(roomId, {
-    status: "active",
-  });
+  const publishedRoom = await roomRepository.publishRoom(roomId);
 
   // Update user role to OWNER if they aren't already   this code reposible fro role change
   const ownerId = room.ownerId?._id || room.ownerId;

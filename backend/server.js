@@ -8,6 +8,7 @@ import bookingRoutes from "./src/routes/booking.routes.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
 import { startBlacklistCleanup } from "./src/middleware/tokenBlacklist.js";
 import { startDraftCleanupJob } from "./src/jobs/draftCleanup.js";
+import { startRoomAvailabilityJob } from "./src/jobs/roomAvailabilityCleanup.js";
 import { errorHandler } from "./src/middleware/error.middleware.js";
 
 dotenv.config();
@@ -19,6 +20,9 @@ startBlacklistCleanup();
 
 // Start draft room cleanup (runs every 1 hour)
 startDraftCleanupJob();
+
+// Start room availability status checker (runs every 1 hour)
+startRoomAvailabilityJob();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

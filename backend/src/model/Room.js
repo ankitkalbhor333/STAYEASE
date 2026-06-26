@@ -251,5 +251,7 @@ roomSchema.index({
   location: "2dsphere"
 });
 
+roomSchema.index({ status: 1, availableFrom: 1, availableTo: 1 });
+
 
 export default mongoose.model("Room", roomSchema);

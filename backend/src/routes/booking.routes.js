@@ -4,6 +4,8 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+router.post("/check-availability", bookingController.checkAvailability);
+router.get("/room/:id/availability", bookingController.getRoomAvailabilityCalendar);
 router.post("/", verifyToken, bookingController.createBooking);
 router.get("/my-bookings", verifyToken, bookingController.getMyBookings);
 router.get("/owner/bookings", verifyToken, bookingController.getOwnerBookings);

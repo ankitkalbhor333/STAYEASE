@@ -1,6 +1,11 @@
 import Payment from "../model/Payment.js";
 
-export const create = (data) => Payment.create(data);
+export const create = (data, options = {}) => {
+  if (options.session) {
+    return Payment.create(Array.isArray(data) ? data : [data], options).then(res => res[0]);
+  }
+  return Payment.create(data);
+};
 
 export const findById = (id) =>
   Payment.findById(id).populate("bookingId").populate("userId", "name email");

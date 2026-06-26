@@ -84,10 +84,24 @@ export const publishRoom = async (roomId, publishData = {}) => {
   const room = await Room.findById(roomId);
   if (!room) return null;
 
+  const now = new Date();
+  const currentUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+  const fromDate = new Date(publishData.availableFrom || room.availableFrom);
+  const toDate = new Date(publishData.availableTo || room.availableTo);
+
+  const fromUTC = Date.UTC(fromDate.getUTCFullYear(), fromDate.getUTCMonth(), fromDate.getUTCDate());
+  const toUTC = Date.UTC(toDate.getUTCFullYear(), toDate.getUTCMonth(), toDate.getUTCDate());
+
+  let computedStatus = "inactive";
+  if (currentUTC >= fromUTC && currentUTC <= toUTC) {
+    computedStatus = "active";
+  }
+
   return await Room.findByIdAndUpdate(
     roomId,
     {
-      status: "active",
+      status: computedStatus,
       publishedAt: new Date(),
       ...publishData,
     },

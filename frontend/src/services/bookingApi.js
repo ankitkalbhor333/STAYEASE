@@ -27,3 +27,11 @@ export const verifyPaymentAPI = (paymentData) => {
 export const getPaymentStatusAPI = (bookingId) => {
   return api.get(`/payments/status/${bookingId}`);
 };
+
+export const checkAvailabilityAPI = (data) => {
+  return api.post("/bookings/check-availability", data);
+};
+
+export const getRoomAvailabilityCalendarAPI = (roomId) => {
+  return api.get(`/bookings/room/${roomId}/availability`);
+};
