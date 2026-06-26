@@ -115,6 +115,12 @@ export default function Navbar({ user, onOpenAuth, onLogout }) {
                       My Profile
                     </Link>
                     <Link
+                      to="/bookings"
+                      className="block px-5 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-semibold"
+                    >
+                      My Bookings
+                    </Link>
+                    <Link
                       to="/edit-profile"
                       className="block px-5 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-medium"
                     >
