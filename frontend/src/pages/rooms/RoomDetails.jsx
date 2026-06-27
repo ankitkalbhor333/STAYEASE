@@ -6,6 +6,8 @@ import Amenities from "../../components/room/Amenities";
 import PriceBox from "../../components/room/PriceBox";
 import MapPicker from "../../components/common/MapPicker";
 import useAuth from "../../hooks/useAuth";
+import ReviewSection from "../../components/room/ReviewSection";
+
 
 export default function RoomDetails() {
   const { id } = useParams();
@@ -270,6 +272,10 @@ export default function RoomDetails() {
                 </div>
               </div>
             </div>
+
+            {/* Reviews */}
+            <ReviewSection roomId={room._id} />
+
           </div>
 
           {/* Sidebar - Price Box */}

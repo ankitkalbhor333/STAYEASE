@@ -24,6 +24,7 @@ import RoomDraft from "../pages/owner/RoomDraft";
 import MyRooms from "../pages/owner/MyRooms";
 import BookingCheckout from "../pages/booking/BookingCheckout";
 import MyBookings from "../pages/booking/MyBookings";
+
 import BookingDetails from "../pages/booking/BookingDetails";
 
 export default function AppRoutes() {
@@ -38,6 +39,7 @@ export default function AppRoutes() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/auth/verify-success" element={<VerifySuccess />} />
+     
 
         <Route path="/rooms/search" element={<SearchRooms />} />
         <Route path="/rooms/:id" element={<RoomDetails />} />
